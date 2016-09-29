@@ -104,6 +104,7 @@ var MeTable = (function($) {
 			sTable: 	  "#showTable", 	// 显示表格选择器
 			sFormId:  	  "#editForm",		// 编辑表单选择器
 			sBaseUrl:     "update",			// 编辑数据提交URL
+			sMethod:	  "POST",			// 查询数据的请求方式
 			sExportUrl:   "export",         // 数据导出地址
 			sSearchHtml:  "",				// 搜索信息
 			sSearchType:  "middle",			// 搜索表单位置
@@ -141,12 +142,12 @@ var MeTable = (function($) {
             $.ajax({
                 url: sSource,
                 data: aoData,
-                type: 'post',
-                dataType: 'json',
+                type: self.options.sMethod,
+                dataType: 'json'
             }).always(function(){
                 layer.close(self.options.iLoading);
             }).done(function(data){
-                if (data.status != 1) return layer.msg('出现错误:' + data.msg, {time:2000, icon:5});
+                if (data.errCode != 0) return layer.msg('出现错误:' + data.errMsg, {time:2000, icon:5});
                 $.fn.dataTable.defaults['bFilter'] = true;
                 fnCallback(data.data);
             }).fail(ajaxFail);
@@ -196,11 +197,11 @@ var MeTable = (function($) {
 								url: sSource,
 								data: aoData,
 								type: 'post',
-								dataType: 'json',
+								dataType: 'json'
 							}).always(function(){
 								layer.close(self.options.iLoading);
 							}).done(function(data){
-								if (data.status != 1) return layer.msg('出现错误:' + data.msg, {time:2000, icon:5});
+								if (data.errCode != 0) return layer.msg('出现错误:' + data.errMsg, {time:2000, icon:5});
 								$.fn.dataTable.defaults['bFilter'] = true;
 								fnCallback(data.data);
 								if (self.oDetailObject) self.oDetailObject.child(function(){return $('#detailTable').parent().html();}).show()
@@ -242,7 +243,7 @@ var MeTable = (function($) {
 					send:    "always",
 					url:     self.options.sEditUrl,
 					title:   k.title,
-					success: function(response) {if (response.status == 0) return response.msg;},
+					success: function(response) {if (response.errCode != 0) return response.errMsg;},
 					error:   function(){$.gritter.add({title:'温馨提醒',text:'服务器没有响应',class_name:'gritter-warning gritter-center',time:800,});}
 				};
 
@@ -296,7 +297,7 @@ var MeTable = (function($) {
 				"bClass": "me-table-save"},
 			{
 				"params": {"id":"data-info-detail"},
-				"html":   views,
+				"html":   views
 			});
 		}
 
@@ -484,10 +485,23 @@ var MeTable = (function($) {
 		var self = this, sFormId = this.options.sFormId,sBaseUrl = self.options.sBaseUrl, sModal = self.options.sModal;														// 初始化数据
 		if (in_array(this.actionType, ["insertDetail", "updateDetail"])) sFormId = self.oDetails.sFormId, sBaseUrl = self.oDetails.sBaseUrl, sModal = self.oDetails.sModal; // 详情处理
 		// 新增和修改验证数据、数据的处理
-		if (!in_array(this.actionType, ["delete", "deleteAll", "deleteDetail"])){if(!$(sFormId).validate(validatorError).form()){return false;}data = $(sFormId).serializeArray();data.push({"name":"actionType", "value":this.actionType})}else{data.actionType = this.actionType;}
+		if (! in_array(this.actionType, ["delete", "deleteAll", "deleteDetail"])){
+			if( ! $(sFormId).validate(validatorError).form()){
+				return false;
+			}
+			data = $(sFormId).serializeArray();
+			data.push({"name":"actionType", "value":this.actionType})
+		} else {
+			data.actionType = this.actionType;
+		}
 
         // 执行之前的数据处理
         if (typeof self.beforeSave == 'function' && ! self.beforeSave(data)) return false;
+
+		// 不是详情处理，请求不同的地址
+		if (in_array(self.actionType, ["insert", "update", "delete"])) {
+			sBaseUrl = self.actionType;
+		}
 
         self.options.iLoading = layer.load();
 		// ajax提交数据
@@ -495,13 +509,13 @@ var MeTable = (function($) {
 			url:        sBaseUrl,
 			type:       'POST',
 			data:       data,
-			dataType:   'json',
+			dataType:   'json'
 		}).always(function(){
 			layer.close(self.options.iLoading);
 		}).done(function(json){
-			layer.msg(json.msg, {icon:json.status == 1 ? 6 : 5});
+			layer.msg(json.msg, {icon:json.errCode == 0 ? 6 : 5});
             // 判断操作成功
-            if (json.status == 1)
+            if (json.errCode == 0)
             {
                 // 执行之后的数据处理
                 if (typeof self.afterSave == 'function' && ! self.afterSave(json.data)) return false;
@@ -566,7 +580,7 @@ var MeTable = (function($) {
             {
                 try {
                     result = $.parseJSON(result);
-                    gAlert("温馨提醒：", result.msg, result.status == 1 ? 'success' : "warning");
+                    gAlert("温馨提醒：", result.errMsg, result.errCode == 0 ? 'success' : "warning");
                 } catch (e) {
                     gAlert("温馨提醒：", '服务器没有响应...');
                 }

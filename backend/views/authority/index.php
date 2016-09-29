@@ -30,6 +30,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <!--表格数据-->
 <table class="table table-striped table-bordered table-hover" id="showTable">
 </table>
+<?php $this->beginBlock('javascript') ?>
 <script type="text/javascript">
     var myTable = new MeTable({
         sTitle:   "权限信息",
@@ -59,3 +60,4 @@ $this->params['breadcrumbs'][] = $this->title;
         myTable.init();
     })
 </script>
+<?php $this->endBlock(); ?>

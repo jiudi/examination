@@ -29,6 +29,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <!--表格数据-->
 <table class="table table-striped table-bordered table-hover" id="showTable">
 </table>
+<?php $this->beginBlock('javascript') ?>
 <script type="text/javascript">
     var aAdmins     = <?=json_encode($this->params['admins'])?>,
         aStatus     = <?=json_encode($status)?>,
@@ -86,3 +87,4 @@ $this->params['breadcrumbs'][] = $this->title;
         });
     })
 </script>
+<?php $this->endBlock(); ?>

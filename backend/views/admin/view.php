@@ -43,6 +43,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <?=$this->render('_detail1', ['address' => $address, 'china' => $china, 'logs' => $logs])?>
 <?=$this->render('_detail2')?>
 <?=$this->render('_detail3')?>
+<?php $this->beginBlock('javascript') ?>
 <script type="text/javascript">
     $(function(){
         // 详情中图片上传
@@ -236,3 +237,4 @@ $this->params['breadcrumbs'][] = $this->title;
         });
     });
 </script>
+<?php $this->beginBlock('javascript') ?>

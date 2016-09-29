@@ -125,6 +125,7 @@ $this->registerJsFile('@web/public/assets/js/fuelux/fuelux.tree.min.js');
     </div>
 </div>
 <?php ActiveForm::end(); ?>
+<?php $this->beginBlock('javascript') ?>
 <script type="text/javascript">
     $(function(){
         var DataSourceTree = function(options) {
@@ -211,3 +212,4 @@ $this->registerJsFile('@web/public/assets/js/fuelux/fuelux.tree.min.js');
     // 导航栏样式装换
     handleMenuActive('\\/role\\/index');
 </script>
+<?php $this->endBlock(); ?>

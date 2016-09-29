@@ -168,70 +168,74 @@ class Controller extends \common\controllers\Controller
         return $this->returnJson();
     }
 
-    // 编辑修改
-    public function actionUpdate()
+    // 新增数据信息
+    public function actionInsert()
     {
         $request = Yii::$app->request;
-        if ($request->isAjax)
-        {
-            // 接收参数
-            $type = $request->post('actionType'); // 操作类型
-            $this->arrJson['errCode'] = 207;
-            if ($type)
-            {
-                $data   = $request->post();
-                $model  = $this->getModel();
-                $index  = $model->primaryKey();
-                $isTrue = false;
-                unset($data['actionType']);
-
-                // 删除全部
-                if ($type === 'deleteAll' && isset($data['ids']) && ! empty($data['ids']))
-                {
-                    // 判断是否有删除全部的权限
-                    $this->arrJson['errCode'] = 216;
-                    if (Yii::$app->user->can(Yii::$app->controller->id.'/deleteAll'))
-                    {
-                        $isTrue = $model->deleteAll([$index[0] => explode(',', $data['ids'])]);
-                    }
+        $data    = $request->post();
+        if ($request->isAjax && $data) {
+            $model  = $this->getModel();
+            $isTrue = $model->load(['params' => $data], 'params');
+            if ($isTrue) {
+                $isTrue = $model->save();
+                $this->arrJson['errMsg'] = $model->getErrorString();
+                if ($isTrue) {
+                    $this->arrJson['errCode'] = 0;
+                    $this->arrJson['data']    = $model;
                 }
-                else
-                {
-                    // 修改和删除时的查询数据
-                    if ($type == 'update' || $type == 'delete') $model = $model->findOne($data[$index[0]]);
-                    if ($model) {
-                        // 删除数据
-                        if ($type == 'delete') {
-                            $this->arrJson['errCode'] = 206;
-                            $isTrue = $model->delete();
-                        } else {
-                            // 新增数据
-                            $this->arrJson['errCode'] = 205;
-                            $isTrue = $model->load(['params' => $data], 'params');
-                            if ($isTrue) {
-                                $isTrue = $model->save();
-                                $this->arrJson['errMsg'] = $model->getErrorString();
-                            }
-                        }
-                    }
-                }
-
-                // 判断是否成功
-                if ($isTrue) $this->arrJson['errCode'] = 0;
-                $this->arrJson['data'] = $model;
-
-                // 记录日志
-                $this->info('update', [
-                    'action' => Yii::$app->controller->id.'/update',
-                    'type'   => $type,
-                    'data'   => $data,
-                    'code'   => $this->arrJson['errCode'],
-                    'time'   => date('Y-m-d H:i:s')
-                ]);
             }
+
         }
 
         // 返回数据
+        return $this->returnJson();
+    }
+
+    // 编辑修改
+    public function actionUpdate()
+    {
+        // 接收参数判断
+        $request = Yii::$app->request;
+        $data    = $request->post();
+        if ($request->isAjax && $data) {
+            // 接收参数
+            $model = $this->getModel();
+            $index = $model->primaryKey();
+            $model = $model->findOne($data[$index[0]]);
+            if ($model) {
+                // 新增数据
+                $this->arrJson['errCode'] = 205;
+                $isTrue = $model->load(['params' => $data], 'params');
+                if ($isTrue) {
+                    $isTrue = $model->save();
+                    $this->arrJson['errMsg'] = $model->getErrorString();
+                    if ($isTrue) {
+                        $this->arrJson['errCode'] = 0;
+                        $this->arrJson['data'] = $model;
+                    }
+                }
+
+            }
+        }
+        // 返回数据
+        return $this->returnJson();
+    }
+    
+    // 删除数据
+    public function actionDelete()
+    {
+        $request = Yii::$app->request;
+        $data    = $request->post();
+        if ($request->isAjax && $data) {
+            $model  = $this->getModel();
+            $index  = $model->primaryKey();
+            $model  = $model->findOne($data[$index[0]]);
+            if ($model && $model->delete()) {
+                $this->arrJson['errCode'] = 0;
+                $this->arrJson['data']    = $model;
+            }
+        }
+
         return $this->returnJson();
     }
 
@@ -254,12 +258,9 @@ class Controller extends \common\controllers\Controller
                 if ($type == 'update' || $type == 'delete') $model = $model->findOne($data[$index[0]]);
 
                 // 删除数据
-                if ($type == 'delete')
-                {
+                if ($type == 'delete') {
                     $isTrue = $model->delete();
-                }
-                else
-                {
+                } else {
                     $isTrue = $model->load(['params' => $data], 'params');
                     $this->arrJson['errCode'] = 205;
                     if ($isTrue)
@@ -305,16 +306,9 @@ class Controller extends \common\controllers\Controller
                     }
                 }
             }
-
-            // 记录日志
-            $this->info('update', [
-                'action' => Yii::$app->controller->id.'/editable',
-                'type'   => 'editable',
-                'data'   => ['pk' => $mixPk, 'name' => $strAttr, 'value' => $mixValue],
-                'code'   => $this->arrJson['errCode'],
-                'time'   => date('Y-m-d H:i:s')
-            ]);
         }
+
+        // 返回数据
         return $this->returnJson();
     }
 
@@ -432,7 +426,6 @@ class Controller extends \common\controllers\Controller
         {
             // 接收参数
             $arrFields = $request->post('aFields');         // 字段信息
-//            $intSize   = (int)$request->post('iSize');      // 查询数据条数
             $strTitle  = $request->post('sTitle');          // 标题信息
 
             // 判断数据的有效性
@@ -442,7 +435,6 @@ class Controller extends \common\controllers\Controller
                 $arrKeys   = array_keys($arrFields);        // 所有的字段
                 $arrSearch = $this->query();                // 处理查询参数
                 $objArray  = $this->getModel()->find()->where($arrSearch['where'])->orderBy($arrSearch['orderBy'])->all();
-                // var_dump($this->getModel()->find()->where($arrSearch['where'])->orderBy($arrSearch['orderBy'])->createCommand()->getRawSql());exit;
 
                 // 判断数据是否存在
                 $this->arrJson['errCode'] = 220;

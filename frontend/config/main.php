@@ -9,6 +9,7 @@ return [
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'controllerNamespace' => 'frontend\controllers',
+    'language'   => 'zh-CN',
     'components' => [
         // 用户配置
         'user' => [
@@ -23,6 +24,9 @@ return [
                 'games/<gameName:\w+>/play'            => 'games/index', // 游戏选择
             ],
         ],
+
+        // 错误处理
     ],
+
     'params' => $params,
 ];

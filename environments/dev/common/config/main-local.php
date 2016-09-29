@@ -4,9 +4,9 @@ return [
         // 数据库配置
         'db' => [
             'class'    => 'yii\db\Connection',
-            'dsn'      => 'mysql:host=localhost;dbname=yii2advanced',
+            'dsn'      => 'mysql:host=localhost;dbname=yii2',
             'username' => 'root',
-            'password' => '',
+            'password' => 'gongyan',
             'charset'  => 'utf8',
         ],
 

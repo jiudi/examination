@@ -1,0 +1,108 @@
+.lianxi-container .tip-container {
+    font-size: 13px;
+    height: 21px;
+    margin: 10px 0 20px;
+    padding-left: 20px;
+}
+.breadcrumb {
+    background: none;
+}
+
+.lianxi-container .shiti-content {
+    color: #4c4c4c;
+    font-size: 18px;
+    line-height: 1.723;
+    width: 740px;
+}
+
+.favor-tag {
+    background: rgba(0, 0, 0, 0) url("../images/fovor.png") no-repeat scroll 12px center;
+    text-indent: 20px;
+}
+.lianxi-container .options-container i {
+    background: rgba(0, 0, 0, 0) url("../images/options.png") no-repeat scroll -1px center;
+    float: left;
+    height: 23px;
+    width: 23px;
+}
+
+.options-container {
+    line-height: 23px;
+    text-indent: 5px;
+}
+
+.lianxi-container .xuan i {
+    background: url(../images/bg.png) -300px -498px no-repeat;
+}
+
+.lianxi-container .dui i {
+    background: url(../images/bg.png) -200px -498px no-repeat;
+}
+
+.lianxi-container .tip-container {
+    margin: 10px 0 0;
+    font-size: 13px;
+    padding-left: 20px;
+    height: 21px;
+    margin-bottom: 20px;
+    color: #999;
+}
+
+.lianxi-container .tongji-container .x-sync {
+    color: #1dacf9;
+    cursor: pointer;
+    position: relative;
+    width: auto;
+}
+
+.tongji-container .x-dadui {
+    padding-left: 36px;
+}
+.tongji-container label span {
+    color: #4c4c4c;
+    font-size: 14px;
+}
+.tongji-container .daduinext input {
+    margin-right: 8px;
+    position: relative;
+    top: 2px;
+}
+input, textarea, select {
+    outline: medium none;
+}
+.tongji-container .daduinext {
+    width: auto;
+}
+.tongji-container label {
+    color: #999;
+    font-size: 14px;
+    width: 110px;
+}
+
+.lx-title {
+    color: #3c3c3c;
+    font-size: 20px;
+    font-weight: bold;
+    height: 40px;
+    line-height: 40px;
+}
+
+.lx-categroy .categroy-hd span {
+    color: #4c4c4c;
+    display: inline;
+    float: left;
+    font-size: 18px;
+}
+
+.lx-categroy .categroy-hd h3 a {
+    font-weight: bold;
+    text-decoration: none;
+}
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.lx-categroy .categroy-bd li a:hover {
+    color: #1dacf9;
+}

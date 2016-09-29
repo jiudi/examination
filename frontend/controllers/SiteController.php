@@ -1,23 +1,22 @@
 <?php
 namespace frontend\controllers;
 
+use common\helpers\Helper;
+use common\models\User;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\web\BadRequestHttpException;
-use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use common\models\LoginForm;
-use common\components\Helper;
 use frontend\models\PasswordResetRequestForm;
 use frontend\models\ResetPasswordForm;
-use frontend\models\SignupForm;
-use frontend\models\ContactForm;
+use frontend\models\RegisterForm;
 
 /**
  * Site controller
  */
-class SiteController extends Controller
+class SiteController extends \common\controllers\Controller
 {
     /**
      * @inheritdoc
@@ -44,7 +43,7 @@ class SiteController extends Controller
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'logout' => ['post'],
+                    //'logout' => ['post'],
                 ],
             ],
         ];
@@ -68,98 +67,113 @@ class SiteController extends Controller
 
     public function actionIndex()
     {
-        $redis = Yii::$app->redis;
-        $name = $redis->get('myname');
-        var_dump($name);
-        var_dump($redis);exit;
-//        return $this->render('index');
+        return $this->render('index');
     }
 
     /**
-     * Logs in a user.
-     *
-     * @return mixed
+     * 用户重复登陆设置返回信息
+     * @return bool
+     */
+    protected function loginRepeat()
+    {
+        $this->arrJson = [
+            'errCode' => 0,
+            'errMsg'  => Yii::t('app', 'loginRepeat'),
+            'data'    => [
+                'username' => Yii::$app->user->identity->username,
+                'email'    => Yii::$app->user->identity->email,
+                'face'     => Yii::$app->user->identity->face,
+            ],
+        ];
+
+        return true;
+    }
+
+    /**
+     * login() 用户登录和注册成功返回
+     * @param string $message
+     * @return bool
+     */
+    protected function login($message = 'loginSuccess')
+    {
+        $this->arrJson = [
+            'errCode' => 0,
+            'errMsg'  => Yii::t('app', $message),
+            'data'    => [
+                'username' => Yii::$app->user->identity->username,
+                'email'    => Yii::$app->user->identity->email,
+                'face'     => Yii::$app->user->identity->face,
+            ],
+        ];
+
+        return true;
+    }
+
+    /**
+     * actionLogin() 用户登录
+     * @return mixed|string
      */
     public function actionLogin()
     {
-        if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
+        // 用户没有登录
+        if (Yii::$app->user->isGuest) {
+            $model = new LoginForm();
+            if ($model->load(['params' => Yii::$app->request->post()], 'params') && $model->login()) {
+                $this->login();
+            } else {
+                $this->arrJson['errCode'] = 1;
+                $this->arrJson['errMsg']  = $model->getErrorString();
+            }
+        } else {
+            $this->loginRepeat();
         }
 
-        $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
-        } else {
-            return $this->render('login', [
-                'model' => $model,
-            ]);
-        }
+        return $this->returnJson();
     }
 
     /**
-     * Logs out the current user.
-     *
-     * @return mixed
+     * actionLogout用户退出
+     * @return \yii\web\Response
      */
     public function actionLogout()
     {
+        // 退出之前修改登录信息
+        $user = User::findOne(Yii::$app->user->id);
+        if ($user) {
+            $user->last_time = time();
+            $user->last_ip   = Helper::getIpAddress();
+            $user->save();
+        }
         Yii::$app->user->logout();
-
         return $this->goHome();
     }
 
     /**
-     * Displays contact page.
-     *
-     * @return mixed
+     * actionRegister() 用户注册
+     * @return string|\yii\web\Response
      */
-    public function actionContact()
+    public function actionRegister()
     {
-        $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-            if ($model->sendEmail(Yii::$app->params['adminEmail'])) {
-                Yii::$app->session->setFlash('success', 'Thank you for contacting us. We will respond to you as soon as possible.');
-            } else {
-                Yii::$app->session->setFlash('error', 'There was an error sending email.');
-            }
-
-            return $this->refresh();
-        } else {
-            return $this->render('contact', [
-                'model' => $model,
-            ]);
-        }
-    }
-
-    /**
-     * Displays about page.
-     *
-     * @return mixed
-     */
-    public function actionAbout()
-    {
-        return $this->render('about');
-    }
-
-    /**
-     * Signs user up.
-     *
-     * @return mixed
-     */
-    public function actionSignup()
-    {
-        $model = new SignupForm();
-        if ($model->load(Yii::$app->request->post())) {
-            if ($user = $model->signup()) {
-                if (Yii::$app->getUser()->login($user)) {
-                    return $this->goHome();
+        if (Yii::$app->user->isGuest) {
+            if (Yii::$app->request->isAjax) {
+                $model = new RegisterForm();
+                // 数据加载成功
+                if ($model->load(['params' => Yii::$app->request->post()], 'params')) {
+                    if ($user = $model->register()) {
+                        if (Yii::$app->getUser()->login($user)) {
+                            $this->login('registerSuccess');
+                        }
+                    } else {
+                        $this->arrJson['errCode'] = 2;
+                        $this->arrJson['errMsg']  = $model->getErrorString();
+                    }
                 }
             }
+        } else {
+            $this->loginRepeat();
         }
 
-        return $this->render('signup', [
-            'model' => $model,
-        ]);
+        return $this->returnJson();
     }
 
     /**

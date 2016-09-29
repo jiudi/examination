@@ -9,6 +9,7 @@ use common\models\UploadForm;
 use yii\web\UploadedFile;
 use yii\helpers\ArrayHelper;
 use backend\models\Menu;
+use common\helpers\Helper;
 
 /**
  * Class    PraiseController
@@ -33,7 +34,7 @@ class Controller extends \common\controllers\Controller
         {
             // 没有权限AJAX返回
             if (Yii::$app->request->isAjax)
-                exit(json_encode(['status' => 0, 'msg' => '对不起，您现在还没获得该操作的权限!', 'data' => [],]));
+                exit(Helper::encode(['status' => 0, 'msg' => '对不起，您现在还没获得该操作的权限!', 'data' => [],]));
             else
                 throw new \yii\web\UnauthorizedHttpException('对不起，您现在还没获得该操作的权限!');
         }
@@ -152,10 +153,10 @@ class Controller extends \common\controllers\Controller
             if ($arrObject) $this->afterSearch($arrObject);
 
             // 返回数据
-            $this->arrAjax = [
-                'code'  => 2,
-                'other' => $objQuery->offset($arrSearch['offset'])->limit($arrSearch['limit'])->orderBy($arrSearch['orderBy'])->createCommand()->getRawSql(),
-                'data'  => [
+            $this->arrJson = [
+                'errCode' => 0,
+                'other'   => $objQuery->offset($arrSearch['offset'])->limit($arrSearch['limit'])->orderBy($arrSearch['orderBy'])->createCommand()->getRawSql(),
+                'data'    => [
                     'sEcho'                => $arrSearch['echo'],     // 查询次数
                     'iTotalRecords'        => count($arrObject),      // 本次查询数据条数
                     'iTotalDisplayRecords' => $intTotal,              // 数据总条数
@@ -164,7 +165,7 @@ class Controller extends \common\controllers\Controller
             ];
         }
 
-        return $this->returnAjax();
+        return $this->returnJson();
     }
 
     // 编辑修改
@@ -175,7 +176,7 @@ class Controller extends \common\controllers\Controller
         {
             // 接收参数
             $type = $request->post('actionType'); // 操作类型
-            $this->arrAjax['code'] = 207;
+            $this->arrJson['errCode'] = 207;
             if ($type)
             {
                 $data   = $request->post();
@@ -188,7 +189,7 @@ class Controller extends \common\controllers\Controller
                 if ($type === 'deleteAll' && isset($data['ids']) && ! empty($data['ids']))
                 {
                     // 判断是否有删除全部的权限
-                    $this->arrAjax['code'] = 216;
+                    $this->arrJson['errCode'] = 216;
                     if (Yii::$app->user->can(Yii::$app->controller->id.'/deleteAll'))
                     {
                         $isTrue = $model->deleteAll([$index[0] => explode(',', $data['ids'])]);
@@ -201,37 +202,37 @@ class Controller extends \common\controllers\Controller
                     if ($model) {
                         // 删除数据
                         if ($type == 'delete') {
-                            $this->arrAjax['code'] = 206;
+                            $this->arrJson['errCode'] = 206;
                             $isTrue = $model->delete();
                         } else {
                             // 新增数据
-                            $this->arrAjax['code'] = 205;
+                            $this->arrJson['errCode'] = 205;
                             $isTrue = $model->load(['params' => $data], 'params');
                             if ($isTrue) {
                                 $isTrue = $model->save();
-                                $this->arrAjax['msg'] = $model->getErrorString();
+                                $this->arrJson['errMsg'] = $model->getErrorString();
                             }
                         }
                     }
                 }
 
                 // 判断是否成功
-                if ($isTrue) $this->arrAjax['code'] = 0;
-                $this->arrAjax['data'] = $model;
+                if ($isTrue) $this->arrJson['errCode'] = 0;
+                $this->arrJson['data'] = $model;
 
                 // 记录日志
                 $this->info('update', [
                     'action' => Yii::$app->controller->id.'/update',
                     'type'   => $type,
                     'data'   => $data,
-                    'code'   => $this->arrAjax['code'],
+                    'code'   => $this->arrJson['errCode'],
                     'time'   => date('Y-m-d H:i:s')
                 ]);
             }
         }
 
         // 返回数据
-        return $this->returnAjax();
+        return $this->returnJson();
     }
 
     // 编辑修改
@@ -260,21 +261,21 @@ class Controller extends \common\controllers\Controller
                 else
                 {
                     $isTrue = $model->load(['params' => $data], 'params');
-                    $this->arrAjax['code'] = 205;
+                    $this->arrJson['errCode'] = 205;
                     if ($isTrue)
                     {
                         $isTrue = $model->save();
-                        $this->arrAjax['code'] = 206;
-                        $this->arrAjax['msg']  = $model->getErrorString();
+                        $this->arrJson['errCode'] = 206;
+                        $this->arrJson['errMsg']  = $model->getErrorString();
                     }
                 }
 
                 // 判断是否成功
-                if ($isTrue) $this->arrAjax['code'] = 0;
+                if ($isTrue) $this->arrJson['errCode'] = 0;
             }
         }
 
-        return $this->returnAjax();
+        return $this->returnJson();
     }
 
     // 行内编辑
@@ -287,20 +288,20 @@ class Controller extends \common\controllers\Controller
             $mixPk    = $request->post('pk');    // 主键值
             $strAttr  = $request->post('name');  // 字段名
             $mixValue = $request->post('value'); // 字段值
-            $this->arrAjax['code'] = 207;
+            $this->arrJson['errCode'] = 207;
             if ($mixPk && $strAttr  && $mixValue != '')
             {
                 // 查询到数据
                 $model = $this->getModel()->findOne($mixPk);
-                $this->arrAjax['code'] = 220;
+                $this->arrJson['errCode'] = 220;
                 if ($model)
                 {
                     $model->$strAttr = $mixValue;
-                    $this->arrAjax['code'] = 206;
+                    $this->arrJson['errCode'] = 206;
                     if ($model->save())
                     {
-                        $this->arrAjax['code'] = 0;
-                        $this->arrAjax['data'] = $model;
+                        $this->arrJson['errCode'] = 0;
+                        $this->arrJson['data'] = $model;
                     }
                 }
             }
@@ -310,11 +311,11 @@ class Controller extends \common\controllers\Controller
                 'action' => Yii::$app->controller->id.'/editable',
                 'type'   => 'editable',
                 'data'   => ['pk' => $mixPk, 'name' => $strAttr, 'value' => $mixValue],
-                'code'   => $this->arrAjax['code'],
+                'code'   => $this->arrJson['errCode'],
                 'time'   => date('Y-m-d H:i:s')
             ]);
         }
-        return $this->returnAjax();
+        return $this->returnJson();
     }
 
     // 查看详情信息
@@ -327,12 +328,12 @@ class Controller extends \common\controllers\Controller
             $id = $request->get('id');
             if ($id)
             {
-                $this->arrAjax['code'] = 0;
-                $this->arrAjax['data'] = $this->getDetailModel()->find()->where(['parent_id' => $id])->all();
+                $this->arrJson['errCode'] = 0;
+                $this->arrJson['data'] = $this->getDetailModel()->find()->where(['parent_id' => $id])->all();
             }
         }
 
-        return $this->returnAjax();
+        return $this->returnJson();
     }
 
     /**
@@ -377,28 +378,28 @@ class Controller extends \common\controllers\Controller
                 $model->scenario = $strField;
                 try {
                     $objFile = $model->$strField = UploadedFile::getInstance($model, $strField);
-                    $this->arrAjax['code'] = 221;
+                    $this->arrJson['errCode'] = 221;
                     if ($objFile)
                     {
                         $isTrue = $model->validate();
-                        $this->arrAjax['msg'] = $model->getFirstError($strField);
+                        $this->arrJson['errMsg'] = $model->getFirstError($strField);
                         if ($isTrue)
                         {
                             // 创建目录
                             $dirName = $this->getUploadPath();
                             if ( ! file_exists($dirName)) mkdir($dirName, 0777, true);
-                            $this->arrAjax['code'] = 202;
-                            $this->arrAjax['data'] = $dirName;
+                            $this->arrJson['errCode'] = 202;
+                            $this->arrJson['data'] = $dirName;
                             if (file_exists($dirName))
                             {
                                 // 生成文件随机名
                                 $strFileName = uniqid() . '.';
                                 $strFilePath = $dirName. $strFileName. $objFile->extension;
-                                $this->arrAjax['code'] = 204;
+                                $this->arrJson['errCode'] = 204;
                                 if ($objFile->saveAs($strFilePath) && $this->afterUpload($objFile, $strFilePath, $strField))
                                 {
-                                    $this->arrAjax['code'] = 1;
-                                    $this->arrAjax['data'] = [
+                                    $this->arrJson['errCode'] = 1;
+                                    $this->arrJson['data'] = [
                                         'sFilePath' => trim($strFilePath, '.'),
                                         'sFileName' => $objFile->baseName.'.'.$objFile->extension,
                                     ];
@@ -408,13 +409,13 @@ class Controller extends \common\controllers\Controller
                     }
 
                 } catch (\Exception $e) {
-                    $this->arrAjax['code'] = 203;
-                    $this->arrAjax['msg']  = $e->getMessage();
+                    $this->arrJson['errCode'] = 203;
+                    $this->arrJson['errMsg']  = $e->getMessage();
                 }
             }
         }
 
-        return $this->returnAjax();
+        return $this->returnJson();
     }
 
     /**
@@ -444,7 +445,7 @@ class Controller extends \common\controllers\Controller
                 // var_dump($this->getModel()->find()->where($arrSearch['where'])->orderBy($arrSearch['orderBy'])->createCommand()->getRawSql());exit;
 
                 // 判断数据是否存在
-                $this->arrAjax['code'] = 220;
+                $this->arrJson['errCode'] = 220;
                 if ($objArray)
                 {
                     // 处理查询到的数据
@@ -515,7 +516,7 @@ class Controller extends \common\controllers\Controller
             }
         }
 
-        return $this->returnAjax();
+        return $this->returnJson();
     }
 
     // 获取model对象

@@ -40,6 +40,9 @@ class RoleController extends Controller
 
     public function getModel() {return new Auth();}
 
+    /**
+     * actionInsert() 新增数据信息
+     */
     public function actionInset()
     {
 
@@ -145,6 +148,14 @@ class RoleController extends Controller
         }
 
         return $this->returnJson();
+    }
+
+    /**
+     * actionDelete() 删除数据
+     */
+    public function actionDelete()
+    {
+
     }
 
     // 修改用户的权限

@@ -25,7 +25,16 @@ return [
             ],
         ],
 
-        // 错误处理
+        // 资源加载
+        // 资源管理修改
+        'assetManager' => [
+            'bundles' => [
+                // 去掉自己加载的Jquery
+                'yii\web\JqueryAsset' => [
+                    'js' => ['/js/jquery.min.js'],
+                ],
+            ],
+        ],
     ],
 
     'params' => $params,

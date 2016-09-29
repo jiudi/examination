@@ -139,7 +139,7 @@ class RoleController extends Controller
 
         }
 
-        return $this->returnAjax();
+        return $this->returnJson();
     }
 
     // 修改用户的权限

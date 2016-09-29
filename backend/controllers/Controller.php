@@ -227,9 +227,9 @@ class Controller extends \common\controllers\Controller
         $request = Yii::$app->request;
         $data    = $request->post();
         if ($request->isAjax && $data) {
-            $model  = $this->getModel();
-            $index  = $model->primaryKey();
-            $model  = $model->findOne($data[$index[0]]);
+            $model = $this->getModel();
+            $index = $model->primaryKey();
+            $model = $model->findOne($data[$index[0]]);
             if ($model && $model->delete()) {
                 $this->arrJson['errCode'] = 0;
                 $this->arrJson['data']    = $model;

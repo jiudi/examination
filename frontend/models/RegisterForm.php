@@ -10,7 +10,8 @@ class RegisterForm extends Model
     public $username;
     public $email;
     public $password;
-    public $repassword;
+    public $rePassword; // 重复密码
+    public $verifyCode; // 验证码这个变量是必须建的，因为要储存验证码的值` /** * @return array the validation rules. */
 
 
     /**
@@ -20,12 +21,29 @@ class RegisterForm extends Model
     {
         return [
             [['username', 'email'], 'filter', 'filter' => 'trim'],
-            [['username', 'email', 'password', 'repassword'], 'required'],
+            [['username', 'email', 'password', 'rePassword', 'verifyCode'], 'required'],
             [['username', 'email'], 'string', 'min' => 2, 'max' => 100],
             ['email', 'email'],
-            ['email', 'unique', 'targetClass' => '\common\models\User', 'message' => '用户邮箱必须唯一'],
-            ['password', 'string', 'min' => 6, 'max' => 30],
+            ['password', 'string', 'min' => 6, 'max' => 50],
+            ['rePassword', 'compare', 'compareAttribute' => 'password', 'operator' => '=='],
+            ['verifyCode', 'captcha'],
+            ['email', 'validateEmail'],
         ];
+    }
+
+    /**
+     * validateEmail()
+     * @param $attribute
+     * @param $params
+     */
+    public function validateEmail($attribute, $params)
+    {
+        // 没有错误验证邮箱
+        if ( ! $this->hasErrors()) {
+            if (User::findOne(['email' => $this->email])) {
+                $this->addError($attribute, \Yii::t('error', 'emailExists'));
+            }
+        }
     }
 
     /**

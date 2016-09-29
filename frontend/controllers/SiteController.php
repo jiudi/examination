@@ -12,6 +12,7 @@ use common\models\LoginForm;
 use frontend\models\PasswordResetRequestForm;
 use frontend\models\ResetPasswordForm;
 use frontend\models\RegisterForm;
+use yii\web\Session;
 
 /**
  * Site controller
@@ -26,10 +27,10 @@ class SiteController extends \common\controllers\Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout', 'signup'],
+                'only' => ['logout', 'register', 'captcha'],
                 'rules' => [
                     [
-                        'actions' => ['signup'],
+                        'actions' => ['register', 'captcha'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
@@ -55,12 +56,18 @@ class SiteController extends \common\controllers\Controller
     public function actions()
     {
         return [
-            'error' => [
-                'class' => 'yii\web\ErrorAction',
-            ],
             'captcha' => [
                 'class' => 'yii\captcha\CaptchaAction',
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
+//                'backColor' => 0x000000,    // 背景颜色
+                'maxLength' => 6,           // 最大显示个数
+                'minLength' => 6,           // 最少显示个数
+                'padding'   => 5,           // 间距
+                'height'    => 38,          // 高度
+                'width'     => 130,         // 宽度
+//                'foreColor' => 0xffffff,     // 字体颜色
+                'offset'    => 4,           // 设置字符偏移量 有效果
+//                'controller' => 'register',    // 拥有这个动作的controller
             ],
         ];
     }

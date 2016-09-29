@@ -5,6 +5,7 @@
 use yii\helpers\Html;
 use frontend\assets\AppAsset;
 use yii\helpers\Url;
+use yii\captcha\Captcha;
 
 AppAsset::register($this);
 ?>
@@ -92,7 +93,7 @@ AppAsset::register($this);
                 <input name="username" class="i-username form-control" required="true" email="true" rangelength="[2, 100]" placeholder="请输入账号邮箱" type="text" />
             </div>
             <div class="form-group">
-                <input name="password" class="i-password form-control" required="true" rangelength="[6, 20]" placeholder="请输入您的密码" type="password" />
+                <input name="password" class="i-password form-control" required="true" rangelength="[6, 50]" placeholder="请输入您的密码" type="password" />
             </div>
             <div class="form-group">
                 <button type="submit" class="submit btn btn-info">登 录</button>
@@ -118,17 +119,27 @@ AppAsset::register($this);
                 <input name="email" class="i-username form-control" required="true" email="true" rangelength="[2, 100]" placeholder="请输入登录邮箱" type="text">
             </div>
             <div class="form-group">
-                <input name="password" class="i-password form-control" required="true" rangelength="[2, 20]" placeholder="请设置密码" type="password">
+                <input name="password" id="m-password" class="i-password form-control" required="true" rangelength="[6, 50]"  placeholder="请设置密码" type="password">
             </div>
             <div class="form-group">
-                <input name="repassword" class="form-control" required="true" rangelength="[2, 20]" placeholder="确认密码" type="password">
+                <input name="rePassword" class="form-control" required="true" rangelength="[6, 50]" equalTo="#m-password" placeholder="确认密码" type="password">
             </div>
             <div class="form-group">
                 <div class="col-sm-6 pl-none">
-                    <input name="captchaCode" class="captchaCode form-control pull-left" required="true" minlength="6" maxlength="6" placeholder="请输入图片验证码" type="text">
+                    <input name="verifyCode" class="captchaCode form-control pull-left" required="true" minlength="6" maxlength="6" placeholder="请输入图片验证码" type="text">
                 </div>
                 <div class="col-sm-6">
-                    <img class="get fr captchaImg pull-right" src="http://auth.kakamobi.com/api/open/v2/captcha/show.htm?captchaId=3348a829600b920829480a0ba134e1c1">
+                    <?=Captcha::widget([
+                        'name'          => 'captchaimg',
+                        'captchaAction' => 'site/captcha',
+                        'imageOptions'  => [
+                            'id'    => 'captchaimg',
+                            'title' => '换一个',
+                            'alt'   => '换一个',
+                            'style' => 'cursor:pointer;margin-left:25px;'
+                        ],
+                        'template' => '{image}'
+                    ])?>
                 </div>
             </div>
             <div class="form-group">
@@ -223,6 +234,9 @@ AppAsset::register($this);
                     layer.msg(json.errMsg, {icon:6});
                     userLogin(json.data);
                 } else {
+                    if ($('.user-form').hasClass('register-form')) {
+                        $('#captchaimg').trigger('click');
+                    }
                     layer.msg(json.errMsg, {icon:5});
                 }
             }).fail(function(error){

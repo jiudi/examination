@@ -168,12 +168,23 @@ class Controller extends \common\controllers\Controller
         return $this->returnJson();
     }
 
+    protected function getRequest()
+    {
+        $request = Yii::$app->request;
+        if ($request->isAjax) {
+            $mixReturn = $request->post();
+        } else {
+            $mixReturn = null;
+        }
+
+        return $mixReturn;
+    }
+
     // 新增数据信息
     public function actionInsert()
     {
-        $request = Yii::$app->request;
-        $data    = $request->post();
-        if ($request->isAjax && $data) {
+        $data = $this->getRequest();
+        if ($data) {
             $model  = $this->getModel();
             $isTrue = $model->load(['params' => $data], 'params');
             if ($isTrue) {
@@ -195,9 +206,8 @@ class Controller extends \common\controllers\Controller
     public function actionUpdate()
     {
         // 接收参数判断
-        $request = Yii::$app->request;
-        $data    = $request->post();
-        if ($request->isAjax && $data) {
+        $data = $this->getRequest();
+        if ($data) {
             // 接收参数
             $model = $this->getModel();
             $index = $model->primaryKey();
@@ -224,9 +234,8 @@ class Controller extends \common\controllers\Controller
     // 删除数据
     public function actionDelete()
     {
-        $request = Yii::$app->request;
-        $data    = $request->post();
-        if ($request->isAjax && $data) {
+        $data = $this->getRequest();
+        if ($data) {
             $model = $this->getModel();
             $index = $model->primaryKey();
             $model = $model->findOne($data[$index[0]]);

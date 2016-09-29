@@ -40,6 +40,11 @@ class RoleController extends Controller
 
     public function getModel() {return new Auth();}
 
+    public function actionInset()
+    {
+
+    }
+
     // 权限管理
     public function actionUpdate()
     {

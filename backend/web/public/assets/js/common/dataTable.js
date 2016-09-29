@@ -103,8 +103,15 @@ var MeTable = (function($) {
 			sTitle: 	  "",				// 表格的标题
 			sTable: 	  "#showTable", 	// 显示表格选择器
 			sFormId:  	  "#editForm",		// 编辑表单选择器
-			sBaseUrl:     "update",			// 编辑数据提交URL
-			sMethod:	  "POST",			// 查询数据的请求方式
+			sMethod:	  "POST",			// 查询数据的请求方式,
+			sBaseUrl:	  "",				// 编辑的统一路由地址前缀
+			aActionUrl:	  {					// 编辑数据提交URL 请求地址
+				"insert": 	 "insert",
+				"update": 	 "update",
+				"delete": 	 "delete",
+				"deleteAll": "delete"
+			},
+			aParams:	  null,				// 请求携带参数
 			sExportUrl:   "export",         // 数据导出地址
 			sSearchHtml:  "",				// 搜索信息
 			sSearchType:  "middle",			// 搜索表单位置
@@ -161,13 +168,14 @@ var MeTable = (function($) {
 			"id": 	  "editForm",
 			"class":  "form-horizontal",
 			"name":   "editForm",
-			"action": this.options.sBaseUrl,
+			"action": "update"
 		}, this.options.formOptions);
 
 		// 操作类型
 		this.actionType     = "";	  // 默认没有类型
 		this.bHandleDetails = false;  // 默认没有开启详情处理
 		this.oDetails 		= null;   // 详情配置为空
+		this.bDetail  		= false;
 
 		// 详情配置的处理
 		if (detailOptions != undefined && typeof detailOptions == "object")
@@ -179,7 +187,12 @@ var MeTable = (function($) {
 				sTable:   		"#detailTable",
 				sModal:   		"#myDetailModal",
 				sFormId:  		"#myDetailForm",
-				sBaseUrl: 		"update",
+				sBaseUrl:	  	self.options.sBaseUrl, // 详情编辑的统一前缀
+				sActionUrl: 	{
+					"insert": "insert",
+					"update": "update",
+					"delete": "delete"
+				},
 				sClickSelect:  	"td.details-control",
 				oTableOptions: 	{
 					"bPaginate": 	 false,             // 不使用分页
@@ -211,7 +224,7 @@ var MeTable = (function($) {
 					},		// 获取数据的处理函数
 					"searching": 	 false,				// 搜索
 					"ordering":  	 false,			 	// 排序
-					"oLanguage": 	 oTableLanguage,	// 语言配置
+					"oLanguage": 	 oTableLanguage		// 语言配置
 				}
 			};
 
@@ -375,12 +388,21 @@ var MeTable = (function($) {
 	// 初始化表单对象
 	MeTable.prototype.initForm = function(data, isDetail)
 	{
+		this.bDetail = isDetail;
         // 显示之前的处理
         if (typeof this.beforeShow == 'function' && ! this.beforeShow(data, isDetail)) return false;
 		layer.close(this.options.iViewLoading);
-		var f = ! isDetail ? this.options.sFormId : this.oDetails.sFormId, // 表单
-			m = ! isDetail ? this.options.sModal  : this.oDetails.sModal;  // modal
-		if ( ! isDetail) $(m).find('h4').html(this.options.sTitle + (this.actionType == "insert" ? "新增" : "编辑"));
+		// 确定操作的表单和模型
+		var f = this.options.sFormId, m = this.options.sModal;
+
+		// 是否操作详情信息
+		if (isDetail) {
+			f = this.oDetails.sFormId;
+			m = this.oDetails.sModal;
+		} else {
+			$(m).find('h4').html(this.options.sTitle + (this.actionType == "insert" ? "新增" : "编辑"));
+		}
+
 		InitForm(f, data);					// 初始化表单
 		// 显示之后的处理
 		if (typeof this.afterShow == 'function' && ! this.afterShow(data, isDetail)) return false;
@@ -391,7 +413,13 @@ var MeTable = (function($) {
 	MeTable.prototype.view = function(row, isDetail) {
         if (this.options.iViewLoading != 0) return false; // 存在直接返回
 		var self = this, data = this.table.data()[row], obj = this.tableOptions.aoColumns, t = self.options.sTitle, c = '.data-info-', i = "#data-info";
-		if (isDetail) data = this.details.data()[row], obj  = this.oDetails.oTableOptions.aoColumns, t = '', c += 'detail-', i = "#data-info-detail";
+		if (isDetail) {
+			data = this.details.data()[row];
+			obj  = this.oDetails.oTableOptions.aoColumns;
+			t = '';
+			c += 'detail-';
+			i = "#data-info-detail";
+		}
 		// 处理的数据
 		if (data != undefined)
 		{
@@ -416,23 +444,21 @@ var MeTable = (function($) {
 
 	// 表格数据的添加
 	MeTable.prototype.insert = function(isDetail) {
-		this.actionType = !isDetail ? "insert" : "insertDetail";
+		this.actionType = "insert";
 		this.initForm(undefined, isDetail);
 	};
 
 
 	// 修改数据信息
 	MeTable.prototype.update = function(row, isDetail) {
-		var d = ! isDetail ? this.table.data()[row] : this.details.data()[row]; // 数据
-		this.actionType = ! isDetail ? "update" : "updateDetail"; 				// 类型
-		this.initForm(d, isDetail); 											// 初始化表单
+		this.actionType = "update"; 											// 类型
+		this.initForm(isDetail ? this.details.data()[row] : this.table.data()[row], isDetail); 											// 初始化表单
 	};
 
 	// 删除数据
 	MeTable.prototype.delete = function(row, isDetail) {
-		var data = !isDetail ? this.table.data()[row] : this.details.data()[row], // 数据
-			self = this;														  // 对象
-		this.actionType = ! isDetail ? "delete" : "deleteDetail";				  // 操作类型
+		var self = this;			// 对象
+		this.actionType ="delete";	// 操作类型
 
 		// 询问框
 		layer.confirm('您确定需要删除这条数据吗?', {
@@ -442,7 +468,7 @@ var MeTable = (function($) {
 			icon: 0
 			// 确认删除
 		}, function(){
-			self.save(data);
+			self.save(isDetail ? this.details.data()[row] : this.table.data()[row]);
 			// 取消删除
 		}, function(){layer.msg('您取消了删除操作！', {time:800});});
 	};
@@ -474,56 +500,66 @@ var MeTable = (function($) {
                     className:"btn-default",
                     callback:function(){layer.msg("您取消了删除操作！");}
                 }
-            },
+            }
         });
 	};
 
 	// 数据新增和修改的执行
 	MeTable.prototype.save = function(data) {
         // 初始化判断和数据处理
-		if (this.actionType == "" && !in_array(this.actionType, ["insert", "update", "delete", "deleteAll", "insertDetail", "updateDetail", "deleteDetail"])) return false; // 类型验证
-		var self = this, sFormId = this.options.sFormId,sBaseUrl = self.options.sBaseUrl, sModal = self.options.sModal;														// 初始化数据
-		if (in_array(this.actionType, ["insertDetail", "updateDetail"])) sFormId = self.oDetails.sFormId, sBaseUrl = self.oDetails.sBaseUrl, sModal = self.oDetails.sModal; // 详情处理
-		// 新增和修改验证数据、数据的处理
-		if (! in_array(this.actionType, ["delete", "deleteAll", "deleteDetail"])){
-			if( ! $(sFormId).validate(validatorError).form()){
-				return false;
+		if (in_array(this.actionType, ["insert", "update", "delete", "deleteAll"])) {
+			// 初始化数据
+			var self     = this,
+				sFormId  = this.options.sFormId,
+				sBaseUrl = self.options.sBaseUrl + self.options.aActionUrl[self.actionType],
+				sModal   = self.options.sModal;
+			// 详情处理
+			if (this.bDetail) {
+				sFormId  = self.oDetails.sFormId;
+				sBaseUrl = self.oDetails.sBaseUrl + self.oDetails.aActionUrl[self.actionType];
+				sModal   = self.oDetails.sModal;
 			}
-			data = $(sFormId).serializeArray();
-			data.push({"name":"actionType", "value":this.actionType})
-		} else {
-			data.actionType = this.actionType;
+
+			// 新增和修改验证数据、数据的处理
+			if (in_array(this.actionType, ["insert", "update"])) {
+				if ($(sFormId).validate(validatorError).form()) {
+					data = $(sFormId).serialize();
+				}
+			}
+
+			// 数据验证
+			if (data) {
+				// 执行之前的数据处理
+				if (typeof self.beforeSave != 'function' || self.beforeSave(data)) {
+					self.options.iLoading = layer.load();
+					// ajax提交数据
+					$.ajax({
+						url:      sBaseUrl,
+						type:     'POST',
+						data:     data,
+						dataType: 'json'
+					}).always(function(){
+						layer.close(self.options.iLoading);
+					}).done(function(json){
+						layer.msg(json.errMsg, {icon:json.errCode == 0 ? 6 : 5});
+						// 判断操作成功
+						if (json.errCode == 0) {
+							// 执行之后的数据处理
+							if (typeof self.afterSave != 'function' || self.afterSave(json.data)) {
+								self.table.draw(false);
+								if (self.actionType !== "delete") $(sModal).modal('hide');
+								self.actionType = "";
+							}
+						}
+					}).fail(ajaxFail);
+
+					return false;
+				}
+
+			}
 		}
 
-        // 执行之前的数据处理
-        if (typeof self.beforeSave == 'function' && ! self.beforeSave(data)) return false;
-
-		// 不是详情处理，请求不同的地址
-		if (in_array(self.actionType, ["insert", "update", "delete"])) {
-			sBaseUrl = self.actionType;
-		}
-
-        self.options.iLoading = layer.load();
-		// ajax提交数据
-		$.ajax({
-			url:        sBaseUrl,
-			type:       'POST',
-			data:       data,
-			dataType:   'json'
-		}).always(function(){
-			layer.close(self.options.iLoading);
-		}).done(function(json){
-			layer.msg(json.msg, {icon:json.errCode == 0 ? 6 : 5});
-            // 判断操作成功
-            if (json.errCode == 0)
-            {
-                // 执行之后的数据处理
-                if (typeof self.afterSave == 'function' && ! self.afterSave(json.data)) return false;
-                self.table.draw(false);
-                if (self.actionType !== "delete") $(sModal).modal('hide');
-                self.actionType = "";
-            }
-		}).fail(ajaxFail);
+		layer.msg('操作有误');
 		return false;
 	};
 
@@ -534,7 +570,6 @@ var MeTable = (function($) {
         html += '<input type="hidden" name="iSize" value="' + (bAll ? 0 : $('select[name=' + self.options.sTable.replace('#', '') + '_length]').val()) + '"/>';
         html += '<input type="hidden" name="sTitle" value="' + self.options.sTitle + '"/>';
 
-
         // 添加字段信息
         this.tableOptions.aoColumns.forEach(function(k, v){
             if (k.data != null && (k.isExport == undefined)) html += '<input type="hidden" name="aFields[' + k.data + ']" value="' + k.title + '"/>';
@@ -542,8 +577,7 @@ var MeTable = (function($) {
 
         // 添加查询条件
         var value = $(self.options.sSearchForm).serializeArray();
-        for (var i in value)
-        {
+        for (var i in value) {
             if (empty(value[i]["value"]) || value[i]["value"] == "All") continue;
             html += '<input type="hidden" name="params[' + value[i]['name'] + ']" value="' + value[i]["value"] + '"/>';
         }

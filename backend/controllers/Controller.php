@@ -10,6 +10,7 @@ use yii\web\UploadedFile;
 use yii\helpers\ArrayHelper;
 use backend\models\Menu;
 use common\helpers\Helper;
+use yii\helpers\Json;
 
 /**
  * Class    PraiseController
@@ -34,35 +35,32 @@ class Controller extends \common\controllers\Controller
         {
             // 没有权限AJAX返回
             if (Yii::$app->request->isAjax)
-                exit(Helper::encode(['status' => 0, 'msg' => '对不起，您现在还没获得该操作的权限!', 'data' => [],]));
+                exit(Json::encode(['errCode' => 0, 'errMsg' => '对不起，您现在还没获得该操作的权限!', 'data' => []]));
             else
                 throw new \yii\web\UnauthorizedHttpException('对不起，您现在还没获得该操作的权限!');
         }
 
-        // 查询导航栏信息
-        $menus = Yii::$app->cache->get('navigation'.Yii::$app->user->id);
-        if ($menus) {
-            Menu::setNavigation();  // 生成缓存导航栏文件
+        // 处理提前获取数据
+        if ( ! in_array($action->id, ['insert', 'update', 'delete'])) {
+            // 查询导航栏信息
             $menus = Yii::$app->cache->get('navigation'.Yii::$app->user->id);
+            if ($menus) {
+                Menu::setNavigation();  // 生成缓存导航栏文件
+                $menus = Yii::$app->cache->get('navigation'.Yii::$app->user->id);
+            }
+
+            // 没有权限
+            if ( ! $menus) throw new \yii\web\UnauthorizedHttpException('对不起，您还没获得显示导航栏目权限!');
+
+            // 查询后台管理员信息
+            $this->admins = ArrayHelper::map(Admin::findAll(['status' => 1]), 'id', 'username');
+            // 注入变量信息
+            Yii::$app->view->params['menus']  = $menus;
+            Yii::$app->view->params['admins'] = $this->admins;
+            Yii::$app->view->params['user']   = Yii::$app->getUser()->identity;
         }
 
-        // 没有权限
-        if ( ! $menus) throw new \yii\web\UnauthorizedHttpException('对不起，您还没获得显示导航栏目权限!');
-
-        // 注入变量信息
-        Yii::$app->view->params['menus'] = $menus;
         return true;
-    }
-
-    // 初始化处理函数
-    public function init()
-    {
-        parent::init();
-        // 查询后台管理员信息
-        $this->admins = ArrayHelper::map(Admin::findAll(['status' => 1]), 'id', 'username');
-        // 注入变量信息
-        Yii::$app->view->params['admins'] = $this->admins;
-        Yii::$app->view->params['user']   = Yii::$app->getUser()->identity;
     }
 
     // 首页显示
@@ -79,7 +77,10 @@ class Controller extends \common\controllers\Controller
         return [];
     }
 
-    // 处理查询信息
+    /**
+     * query() 查询查询参数信息
+     * @return array
+     */
     protected function query()
     {
         $request = Yii::$app->request;
@@ -137,53 +138,43 @@ class Controller extends \common\controllers\Controller
      */
     protected function afterSearch(&$array){}
 
-    // 查询方法
+    /**
+     * actionSearch() 处理查询数据
+     * @return mixed|string
+     */
     public function actionSearch()
     {
         // 定义请求数据
-        if (Yii::$app->request->isAjax)
-        {
-            $arrSearch = $this->query();                          // 处理查询参数
-            $objQuery  = $this->getModel()->find()->where($arrSearch['where']);
+        $search = $this->query();                          // 处理查询参数
+        $query  = $this->getModel()->find()->where($search['where']);
 
-            // 查询之前的处理
-            $objMod    = clone $objQuery;
-            $intTotal  = $objMod->count();                        // 查询数据条数
-            $arrObject = $objQuery->offset($arrSearch['offset'])->limit($arrSearch['limit'])->orderBy($arrSearch['orderBy'])->all();
-            if ($arrObject) $this->afterSearch($arrObject);
+        // 查询之前的处理
+        $total = $query->count();                        // 查询数据条数
+        $array = $query->offset($search['offset'])->limit($search['limit'])->orderBy($search['orderBy'])->all();
+        if ($array) $this->afterSearch($array);
 
-            // 返回数据
-            $this->arrJson = [
-                'errCode' => 0,
-                'other'   => $objQuery->offset($arrSearch['offset'])->limit($arrSearch['limit'])->orderBy($arrSearch['orderBy'])->createCommand()->getRawSql(),
-                'data'    => [
-                    'sEcho'                => $arrSearch['echo'],     // 查询次数
-                    'iTotalRecords'        => count($arrObject),      // 本次查询数据条数
-                    'iTotalDisplayRecords' => $intTotal,              // 数据总条数
-                    'aaData'               => $arrObject,             // 本次查询数据信息
-                ]
-            ];
-        }
+        // 返回数据
+        $this->arrJson = [
+            'errCode' => 0,
+            'other'   => $query->offset($search['offset'])->limit($search['limit'])->orderBy($search['orderBy'])->createCommand()->getRawSql(),
+            'data'    => [
+                'sEcho'                => $search['echo'],  // 查询次数
+                'iTotalRecords'        => count($array),    // 本次查询数据条数
+                'iTotalDisplayRecords' => $total,           // 数据总条数
+                'aaData'               => $array,           // 本次查询数据信息
+            ]
+        ];
 
         return $this->returnJson();
     }
 
-    protected function getRequest()
-    {
-        $request = Yii::$app->request;
-        if ($request->isAjax) {
-            $mixReturn = $request->post();
-        } else {
-            $mixReturn = null;
-        }
-
-        return $mixReturn;
-    }
-
-    // 新增数据信息
+    /**
+     * actionInsert() 处理新增数据
+     * @return mixed|string
+     */
     public function actionInsert()
     {
-        $data = $this->getRequest();
+        $data = Yii::$app->request->post();
         if ($data) {
             $model  = $this->getModel();
             $isTrue = $model->load(['params' => $data], 'params');
@@ -202,11 +193,14 @@ class Controller extends \common\controllers\Controller
         return $this->returnJson();
     }
 
-    // 编辑修改
+    /**
+     * actionUpdate() 处理修改数据
+     * @return mixed|string
+     */
     public function actionUpdate()
     {
         // 接收参数判断
-        $data = $this->getRequest();
+        $data = Yii::$app->request->post();
         if ($data) {
             // 接收参数
             $model = $this->getModel();
@@ -227,14 +221,18 @@ class Controller extends \common\controllers\Controller
 
             }
         }
+
         // 返回数据
         return $this->returnJson();
     }
-    
-    // 删除数据
+
+    /**
+     * actionDelete() 处理删除数据
+     * @return mixed|string
+     */
     public function actionDelete()
     {
-        $data = $this->getRequest();
+        $data = Yii::$app->request->post();
         if ($data) {
             $model = $this->getModel();
             $index = $model->primaryKey();
@@ -248,47 +246,10 @@ class Controller extends \common\controllers\Controller
         return $this->returnJson();
     }
 
-    // 编辑修改
-    public function actionEdit()
-    {
-        $request = Yii::$app->request;
-        if ($request->isAjax)
-        {
-            // 接收参数
-            $type = $request->post('actionType'); // 操作类型
-            if ($type)
-            {
-                $data  = $request->post();
-                unset($data['actionType']);
-                $model = $this->getDetailModel();
-                $index = $model->primaryKey();
-
-                // 修改和删除时的查询数据
-                if ($type == 'update' || $type == 'delete') $model = $model->findOne($data[$index[0]]);
-
-                // 删除数据
-                if ($type == 'delete') {
-                    $isTrue = $model->delete();
-                } else {
-                    $isTrue = $model->load(['params' => $data], 'params');
-                    $this->arrJson['errCode'] = 205;
-                    if ($isTrue)
-                    {
-                        $isTrue = $model->save();
-                        $this->arrJson['errCode'] = 206;
-                        $this->arrJson['errMsg']  = $model->getErrorString();
-                    }
-                }
-
-                // 判断是否成功
-                if ($isTrue) $this->arrJson['errCode'] = 0;
-            }
-        }
-
-        return $this->returnJson();
-    }
-
-    // 行内编辑
+    /**
+     * actionEditable 处理行内编辑
+     * @return mixed|string
+     */
     public function actionEditable()
     {
         $request = Yii::$app->request;
@@ -321,7 +282,10 @@ class Controller extends \common\controllers\Controller
         return $this->returnJson();
     }
 
-    // 查看详情信息
+    /**
+     * actionViews() 处理详情显示
+     * @return mixed|string
+     */
     public function actionViews()
     {
         $request = Yii::$app->request;
@@ -362,7 +326,10 @@ class Controller extends \common\controllers\Controller
         return true;
     }
 
-    // 图片上传
+    /**
+     * actionUpload() 处理文件上传操作
+     * @return mixed|string
+     */
     public function actionUpload()
     {
         // 定义请求数据
@@ -427,7 +394,10 @@ class Controller extends \common\controllers\Controller
      */
     protected function handleExport(&$arrObject){}
 
-    // 导出Excel文件
+    /**
+     * actionExport() 文件导出处理
+     * @return mixed|string
+     */
     public function actionExport()
     {
         $request = Yii::$app->request;
@@ -520,9 +490,9 @@ class Controller extends \common\controllers\Controller
         return $this->returnJson();
     }
 
-    // 获取model对象
+    /**
+     * getModel() 获取model对象
+     * @return Admin
+     */
     protected function getModel(){ return new Admin();}
-
-    // 获取详情model对象
-    protected function getDetailModel(){return new Admin();}
 }

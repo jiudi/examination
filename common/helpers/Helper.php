@@ -4,8 +4,6 @@ namespace common\helpers;
 
 class Helper
 {
-    const JSON_OPTION = 320;
-
     /**
      * getSalt() 获取随机的加密盐值
      * @param  int $intNum 密钥长度
@@ -42,16 +40,6 @@ class Helper
         }
 
         return $strIpAddress;
-    }
-
-    /**
-     * encode() json_encode() 处理数据
-     * @param  mixed $params 处理的数据
-     * @return string
-     */
-    public static function encode($params)
-    {
-        return json_encode($params, self::JSON_OPTION);
     }
 
     /**

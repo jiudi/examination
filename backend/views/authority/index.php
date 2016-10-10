@@ -1,5 +1,4 @@
 <?php
-use yii\helpers\Url;
 // 定义标题和面包屑信息
 $this->title = '角色信息';
 $this->params['breadcrumbs'][] = $this->title;
@@ -33,9 +32,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <?php $this->beginBlock('javascript') ?>
 <script type="text/javascript">
     var myTable = new MeTable({
-        sTitle:   "权限信息",
-        sBaseUrl: "/role/",
-        aParams:  {"type": 2}
+        sTitle: "权限信息"
     },{
         "aoColumns":[
 			oCheckBox,
@@ -47,7 +44,7 @@ $this->params['breadcrumbs'][] = $this->title;
         ],
 
         // 设置隐藏和排序信息
-         "order":[[3, "desc"]],
+         "order":[[3, "desc"]]
         // "columnDefs":[{"targets":[2,3], "visible":false}],
     });
 

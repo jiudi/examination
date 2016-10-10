@@ -38,8 +38,7 @@ $this->params['breadcrumbs'][] = $this->title;
     }
 
     var myTable = new MeTable({
-        sTitle:   "角色信息",
-        sBaseUrl: "<?=Url::toRoute(['role/update', 'type' => 1])?>"
+        sTitle:   "角色信息"
     },{
         "aoColumns":[
 			oCheckBox,

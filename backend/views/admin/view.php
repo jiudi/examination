@@ -44,6 +44,8 @@ $this->params['breadcrumbs'][] = $this->title;
 <?=$this->render('_detail2')?>
 <?=$this->render('_detail3')?>
 <?php $this->beginBlock('javascript') ?>
+<?=$this->blocks['javascript-1']?>
+<?=$this->blocks['javascript-3']?>
 <script type="text/javascript">
     $(function(){
         // 详情中图片上传
@@ -163,7 +165,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 deferred
                     .done(function(result) {// 成功
-                        if (result.status == 1)
+                        if (result.errCode == 0)
                         {
                             form.find('button').removeAttr('disabled');
                             form.find('input[type=file]').ace_file_input('enable');
@@ -172,7 +174,7 @@ $this->params['breadcrumbs'][] = $this->title;
                             $('#avatar2').get(0).src = result.data.sFilePath;
                             working = false;
                         } else {
-                            layer.msg(result.msg, {icon:5})
+                            layer.msg(result.errMsg, {icon:5})
                         }
 
                     })
@@ -237,4 +239,4 @@ $this->params['breadcrumbs'][] = $this->title;
         });
     });
 </script>
-<?php $this->beginBlock('javascript') ?>
+<?php $this->endBlock(); ?>

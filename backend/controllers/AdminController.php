@@ -18,9 +18,8 @@ class AdminController extends Controller
     {
         $where  = [];
         $intUid = (int)Yii::$app->user->id;
-        if ($intUid != 1)
-        {
-            $where = [['or', ['id' => $intUid], ['create_id' => $intUid]]];
+        if ($intUid != 1) {
+            $where = [['or', ['id' => $intUid], ['created_id' => $intUid]]];
         }
 
         return [
@@ -43,101 +42,6 @@ class AdminController extends Controller
 
     // 返回model
     public function getModel() { return new Admin();}
-    
-    // 新增方法重新
-    public function actionInsert()
-    {
-        $request = Yii::$app->request;
-        $data    = $request->post();
-        if ($request->isAjax && $data) {
-            $model = new Admin(['scenario' => 'admin-create']);
-            $this->arrJson['errCode'] = 206;
-            if ($model->load(['params' => Yii::$app->request->post()], 'params')) {
-                if ($model->save()) {
-                    Yii::$app->authManager->assign(Yii::$app->authManager->getRole($model->role), $model->id);
-                    $this->arrJson = [
-                        'errCode' => 0,
-                        'data'    => $model,
-                    ];
-                } else {
-                    $this->arrJson['errMsg'] = $model->getErrorString();
-                }
-            }
-        }
-
-        return $this->returnJson();
-    }
-
-    // 重新新增和修改的方法
-    public function actionUpdate()
-    {
-        // 接收参数
-        $request = Yii::$app->request;           // 请求信息
-        $array = $request->post();             // 请求参数
-
-        // 判断数据的有效性
-        if ($request->isAjax && $array) {
-            $id = (int)$array['id'];
-            $uid = Yii::$app->user->id;
-            if ($id) {
-                $model = Admin::findOne($id);
-                if ($model) {
-                    // 判断权限 管理员可以操作所有权限,其他用户只能修改自己添加的用户
-                    $this->arrJson['errCode'] = 216;
-                    if ($uid == 1 || ($model->create_id == $uid || $model->id == $uid)) {
-                        $model->setScenario('admin-update');
-                        $this->arrJson['errCode'] = 206;
-                        if ($model->load(['params' => Yii::$app->request->post()], 'params')) {
-                            if ($model->save()) {
-                                Yii::$app->authManager->revokeAll($id);
-                                Yii::$app->authManager->assign(Yii::$app->authManager->getRole($model->role), $id);
-                                $this->arrJson = [
-                                    'errCode' => 0,
-                                    'data'    => $model,
-                                ];
-                            } else {
-                                $this->arrJson['msg'] = $model->getErrorString();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return $this->returnJson();
-    }
-
-    // 删除
-    public function actionDelete()
-    {
-        // 接收参数
-        $request = Yii::$app->request;  // 请求信息
-        $array = $request->post();      // 请求参数
-
-        // 判断数据的有效性
-        if ($request->isAjax && $array) {
-            $id = (int)$array['id'];
-            // 不能删除管理员
-            if ($id !== 1) {
-                // 需要有删除管理员的权限
-                $this->arrJson['errCode'] = 216;
-                if (Yii::$app->user->can('deleteAdmin')) {
-                    $this->arrJson['errCode'] = 207;
-                    $arrUser = Admin::findOne($id);
-                    if ($arrUser && $arrUser->delete()) {
-                        // 移出权限
-                        Yii::$app->authManager->revokeAll($id);
-                        $this->arrJson = [
-                            'errCode' => 0,
-                            'data' => $arrUser,
-                        ];
-                    }
-                }
-            }
-        }
-
-        return $this->returnJson();
-    }
 
     // 我的信息
     public function actionView()

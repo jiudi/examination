@@ -106,10 +106,10 @@ var MeTable = (function($) {
 			sMethod:	  "POST",			// 查询数据的请求方式,
 			sBaseUrl:	  "",				// 编辑的统一路由地址前缀
 			aActionUrl:	  {					// 编辑数据提交URL 请求地址
-				"insert": 	 "insert",
+				"insert": 	 "create",
 				"update": 	 "update",
 				"delete": 	 "delete",
-				"deleteAll": "delete"
+				"deleteAll": "delete-all"
 			},
 			aParams:	  null,				// 请求携带参数
 			sExportUrl:   "export",         // 数据导出地址
@@ -189,7 +189,7 @@ var MeTable = (function($) {
 				sFormId:  		"#myDetailForm",
 				sBaseUrl:	  	self.options.sBaseUrl, // 详情编辑的统一前缀
 				sActionUrl: 	{
-					"insert": "insert",
+					"insert": "create",
 					"update": "update",
 					"delete": "delete"
 				},
@@ -468,7 +468,7 @@ var MeTable = (function($) {
 			icon: 0
 			// 确认删除
 		}, function(){
-			self.save(isDetail ? this.details.data()[row] : this.table.data()[row]);
+			self.save(isDetail ? self.details.data()[row] : self.table.data()[row]);
 			// 取消删除
 		}, function(){layer.msg('您取消了删除操作！', {time:800});});
 	};
@@ -522,9 +522,11 @@ var MeTable = (function($) {
 
 			// 新增和修改验证数据、数据的处理
 			if (in_array(this.actionType, ["insert", "update"])) {
-				if ($(sFormId).validate(validatorError).form()) {
+				// if ($(sFormId).validate(validatorError).form()) {
 					data = $(sFormId).serialize();
-				}
+				// } else {
+					//return false;
+				// }
 			}
 
 			// 数据验证

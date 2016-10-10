@@ -9,8 +9,8 @@ use common\models\UploadForm;
 use yii\web\UploadedFile;
 use yii\helpers\ArrayHelper;
 use backend\models\Menu;
-use common\helpers\Helper;
 use yii\helpers\Json;
+use yii\web\UnauthorizedHttpException;
 
 /**
  * Class    PraiseController
@@ -31,13 +31,12 @@ class Controller extends \common\controllers\Controller
         if ( ! parent::beforeAction($action)) {return false;}
 
         // 验证权限
-        if( ! \Yii::$app->user->can($action->controller->id . '/' . $action->id) && Yii::$app->getErrorHandler()->exception === null)
-        {
+        if( ! Yii::$app->user->can($action->controller->id . '/' . $action->id) && Yii::$app->getErrorHandler()->exception === null) {
             // 没有权限AJAX返回
             if (Yii::$app->request->isAjax)
-                exit(Json::encode(['errCode' => 0, 'errMsg' => '对不起，您现在还没获得该操作的权限!', 'data' => []]));
+                exit(Json::encode(['errCode' => 216, 'errMsg' => '对不起，您现在还没获得该操作的权限!', 'data' => []]));
             else
-                throw new \yii\web\UnauthorizedHttpException('对不起，您现在还没获得该操作的权限!');
+                throw new UnauthorizedHttpException('对不起，您现在还没获得该操作的权限!');
         }
 
         // 处理提前获取数据
@@ -50,7 +49,7 @@ class Controller extends \common\controllers\Controller
             }
 
             // 没有权限
-            if ( ! $menus) throw new \yii\web\UnauthorizedHttpException('对不起，您还没获得显示导航栏目权限!');
+            if ( ! $menus) throw new UnauthorizedHttpException('对不起，您还没获得显示导航栏目权限!');
 
             // 查询后台管理员信息
             $this->admins = ArrayHelper::map(Admin::findAll(['status' => 1]), 'id', 'username');
@@ -169,10 +168,25 @@ class Controller extends \common\controllers\Controller
     }
 
     /**
+     * handleJson() 处理返回数据
+     * @param mixed $data     返回数据
+     * @param int   $errCode  返回状态码
+     * @param null  $errMsg   提示信息
+     */
+    protected function handleJson($data, $errCode = 0, $errMsg = null)
+    {
+        $this->arrJson['errCode'] = $errCode;
+        $this->arrJson['data']    = $data;
+        if ($errMsg !== null) {
+            $this->arrJson['errMsg'] = $errMsg;
+        }
+    }
+
+    /**
      * actionInsert() 处理新增数据
      * @return mixed|string
      */
-    public function actionInsert()
+    public function actionCreate()
     {
         $data = Yii::$app->request->post();
         if ($data) {
@@ -181,10 +195,7 @@ class Controller extends \common\controllers\Controller
             if ($isTrue) {
                 $isTrue = $model->save();
                 $this->arrJson['errMsg'] = $model->getErrorString();
-                if ($isTrue) {
-                    $this->arrJson['errCode'] = 0;
-                    $this->arrJson['data']    = $model;
-                }
+                if ($isTrue) $this->handleJson($model);
             }
 
         }
@@ -203,9 +214,7 @@ class Controller extends \common\controllers\Controller
         $data = Yii::$app->request->post();
         if ($data) {
             // 接收参数
-            $model = $this->getModel();
-            $index = $model->primaryKey();
-            $model = $model->findOne($data[$index[0]]);
+            $model = $this->findModel($data);
             if ($model) {
                 // 新增数据
                 $this->arrJson['errCode'] = 205;
@@ -213,12 +222,8 @@ class Controller extends \common\controllers\Controller
                 if ($isTrue) {
                     $isTrue = $model->save();
                     $this->arrJson['errMsg'] = $model->getErrorString();
-                    if ($isTrue) {
-                        $this->arrJson['errCode'] = 0;
-                        $this->arrJson['data'] = $model;
-                    }
+                    if ($isTrue) $this->handleJson($model);
                 }
-
             }
         }
 
@@ -234,12 +239,12 @@ class Controller extends \common\controllers\Controller
     {
         $data = Yii::$app->request->post();
         if ($data) {
-            $model = $this->getModel();
-            $index = $model->primaryKey();
-            $model = $model->findOne($data[$index[0]]);
-            if ($model && $model->delete()) {
-                $this->arrJson['errCode'] = 0;
-                $this->arrJson['data']    = $model;
+            $model = $this->findModel($data);
+            if ($model) {
+                if ($model->delete())
+                    $this->handleJson($model);
+                else
+                    $this->arrJson['errMsg'] = $model->getErrorString();
             }
         }
 
@@ -269,11 +274,7 @@ class Controller extends \common\controllers\Controller
                 {
                     $model->$strAttr = $mixValue;
                     $this->arrJson['errCode'] = 206;
-                    if ($model->save())
-                    {
-                        $this->arrJson['errCode'] = 0;
-                        $this->arrJson['data'] = $model;
-                    }
+                    if ($model->save()) $this->handleJson($model);
                 }
             }
         }
@@ -281,28 +282,7 @@ class Controller extends \common\controllers\Controller
         // 返回数据
         return $this->returnJson();
     }
-
-    /**
-     * actionViews() 处理详情显示
-     * @return mixed|string
-     */
-    public function actionViews()
-    {
-        $request = Yii::$app->request;
-        if ($request->isAjax)
-        {
-            // 接收参数
-            $id = $request->get('id');
-            if ($id)
-            {
-                $this->arrJson['errCode'] = 0;
-                $this->arrJson['data'] = $this->getDetailModel()->find()->where(['parent_id' => $id])->all();
-            }
-        }
-
-        return $this->returnJson();
-    }
-
+    
     /**
      * getUploadPath() 获取上传文件目录(默认是相对路径 ./public/uploads)
      * @access protected
@@ -316,12 +296,12 @@ class Controller extends \common\controllers\Controller
     /**
      * afterUpload() 文件上传成功的处理信息
      * @access protected
-     * @param  object $objFile     文件上传类
+     * @param  object $object     文件上传类
      * @param  string $strFilePath 文件保存路径
      * @param  string $strField    上传文件表单名
      * @return bool 上传成功返回true
      */
-    public function afterUpload($objFile, &$strFilePath, $strField)
+    public function afterUpload($object, &$strFilePath, $strField)
     {
         return true;
     }
@@ -349,38 +329,32 @@ class Controller extends \common\controllers\Controller
                 try {
                     $objFile = $model->$strField = UploadedFile::getInstance($model, $strField);
                     $this->arrJson['errCode'] = 221;
-                    if ($objFile)
-                    {
+                    if ($objFile) {
                         $isTrue = $model->validate();
                         $this->arrJson['errMsg'] = $model->getFirstError($strField);
-                        if ($isTrue)
-                        {
+                        if ($isTrue) {
                             // 创建目录
                             $dirName = $this->getUploadPath();
                             if ( ! file_exists($dirName)) mkdir($dirName, 0777, true);
                             $this->arrJson['errCode'] = 202;
                             $this->arrJson['data'] = $dirName;
-                            if (file_exists($dirName))
-                            {
+                            if (file_exists($dirName)) {
                                 // 生成文件随机名
                                 $strFileName = uniqid() . '.';
                                 $strFilePath = $dirName. $strFileName. $objFile->extension;
                                 $this->arrJson['errCode'] = 204;
-                                if ($objFile->saveAs($strFilePath) && $this->afterUpload($objFile, $strFilePath, $strField))
-                                {
-                                    $this->arrJson['errCode'] = 1;
-                                    $this->arrJson['data'] = [
+                                if ($objFile->saveAs($strFilePath) && $this->afterUpload($objFile, $strFilePath, $strField)) {
+                                    $this->handleJson([
                                         'sFilePath' => trim($strFilePath, '.'),
                                         'sFileName' => $objFile->baseName.'.'.$objFile->extension,
-                                    ];
+                                    ]);
                                 }
                             }
                         }
                     }
 
                 } catch (\Exception $e) {
-                    $this->arrJson['errCode'] = 203;
-                    $this->arrJson['errMsg']  = $e->getMessage();
+                    $this->handleJson([], 203, $e->getMessage());
                 }
             }
         }
@@ -419,9 +393,6 @@ class Controller extends \common\controllers\Controller
                 $this->arrJson['errCode'] = 220;
                 if ($objArray)
                 {
-                    // 处理查询到的数据
-                    $this->handleExport($objArray);
-
                     ob_end_clean();
                     ob_start();
                     $objPHPExcel = new \PHPExcel();
@@ -455,6 +426,8 @@ class Controller extends \common\controllers\Controller
                     $intNum = 2;
                     foreach ($objArray as $value)
                     {
+                        // 处理查询到的数据
+                        $this->handleExport($value);
                         // 写入信息数据
                         foreach ($arrLetter as $intKey => $strValue)
                         {
@@ -495,4 +468,24 @@ class Controller extends \common\controllers\Controller
      * @return Admin
      */
     protected function getModel(){ return new Admin();}
+
+    /**
+     * findModel() 查询单个model
+     * @param  array $data 请求的数据
+     * @return Controller|Admin
+     */
+    protected function findModel($data)
+    {
+        $model = $this->getModel();
+        $index = $model->primaryKey();
+        if ($index && isset($index[0]) && isset($data[$index[0]])) {
+            $mixReturn = $model->findOne($data[$index[0]]);
+        } else {
+            $mixReturn = false;
+            $this->arrJson['errCode'] = 220; // 查询数据不存在
+        }
+
+        return $mixReturn;
+    }
+
 }

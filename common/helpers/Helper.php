@@ -5,17 +5,6 @@ namespace common\helpers;
 class Helper
 {
     /**
-     * getSalt() 获取随机的加密盐值
-     * @param  int $intNum 密钥长度
-     * @return string
-     */
-    public static function getSalt($intNum = 6)
-    {
-        $str = str_shuffle('0123456789abcdefghigklmnopqrstuvwsyzABCDEFEHIGKLMNOPQRSTUVWSYZ');
-        return substr($str, 0, $intNum);
-    }
-
-    /**
      * getIpAddress() 获取IP地址
      * @return string 返回字符串
      */
@@ -50,9 +39,12 @@ class Helper
      */
     public static function create($strClassName, $namespace = 'payments')
     {
-        $objReturn    = null;
-        $strClassName = __NAMESPACE__.'\\'.$namespace.'\\'.ucfirst($strClassName);
-        if (class_exists($strClassName)) $objReturn = new $strClassName;
+        $objReturn = null;
+        if ($strClassName) {
+            $strClassName = '\\common\\'.$namespace.'\\'.ucfirst(trim($strClassName));
+            if (class_exists($strClassName)) $objReturn = new $strClassName;
+        }
+
         return $objReturn;
     }
 }

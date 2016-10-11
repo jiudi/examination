@@ -168,21 +168,6 @@ class Controller extends \common\controllers\Controller
     }
 
     /**
-     * handleJson() 处理返回数据
-     * @param mixed $data     返回数据
-     * @param int   $errCode  返回状态码
-     * @param null  $errMsg   提示信息
-     */
-    protected function handleJson($data, $errCode = 0, $errMsg = null)
-    {
-        $this->arrJson['errCode'] = $errCode;
-        $this->arrJson['data']    = $data;
-        if ($errMsg !== null) {
-            $this->arrJson['errMsg'] = $errMsg;
-        }
-    }
-
-    /**
      * actionInsert() 处理新增数据
      * @return mixed|string
      */
@@ -245,6 +230,27 @@ class Controller extends \common\controllers\Controller
                     $this->handleJson($model);
                 else
                     $this->arrJson['errMsg'] = $model->getErrorString();
+            }
+        }
+
+        return $this->returnJson();
+    }
+
+    /**
+     * actionDeleteAll()批量删除操作
+     * @return mixed|string
+     */
+    public function actionDeleteAll()
+    {
+        $ids = Yii::$app->request->post('ids');
+        if ($ids) {
+            $model = $this->getModel();
+            $index = $model->primaryKey();
+            $this->arrJson['errCode'] = 220; // 查询数据不存在
+            if ($index && isset($index[0])) {
+                if ($model->deleteAll([$index[0] => explode(',', $ids)])) {
+                    $this->handleJson([]);
+                }
             }
         }
 

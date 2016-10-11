@@ -33,6 +33,21 @@ class Controller extends \yii\web\Controller
     }
 
     /**
+     * handleJson() 处理返回数据
+     * @param mixed $data     返回数据
+     * @param int   $errCode  返回状态码
+     * @param null  $errMsg   提示信息
+     */
+    protected function handleJson($data, $errCode = 0, $errMsg = null)
+    {
+        $this->arrJson['errCode'] = $errCode;
+        $this->arrJson['data']    = $data;
+        if ($errMsg !== null) {
+            $this->arrJson['errMsg'] = $errMsg;
+        }
+    }
+
+    /**
      * info() 记录日志信息(管理员操作日志)
      * @access protected
      * @param  string   $strFile   文件名(不包括后缀名)

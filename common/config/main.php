@@ -14,7 +14,7 @@ return [
             'username'    => 'root',
             'password'    => 'gongyan',
             'charset'     => 'utf8',
-            'tablePrefix' => 'yii2_',
+            'tablePrefix' => 'ks_',
         ],
 
         // 路由配置

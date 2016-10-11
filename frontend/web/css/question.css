@@ -15,7 +15,7 @@
     width: 740px;
 }
 
-.favor-tag {
+span.favor-tag {
     background: rgba(0, 0, 0, 0) url("../images/fovor.png") no-repeat scroll 12px center;
     text-indent: 20px;
 }

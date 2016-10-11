@@ -158,3 +158,12 @@ div.footer .icon {
 .user-info small {
     display: block;
 }
+
+.clearfix::before, .cl::before, .clearfix::after, .cl::after {
+    content: "";
+    display: table;
+    line-height: 0;
+}
+.clearfix::after, .cl::after {
+    clear: both;
+}

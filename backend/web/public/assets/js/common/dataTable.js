@@ -98,7 +98,7 @@ var MeTable = (function($) {
             // "processing": true,				    // 是否使用加载进度条
             "sPaginationType":  "full_numbers",     // 分页样式
             "oLanguage":        oTableLanguage,		// 语言配置
-            "order":            [[1, "desc"]],      // 默认排序
+            "order":            [[1, "desc"]]       // 默认排序
 		};
 
         var self = this;
@@ -205,12 +205,12 @@ var MeTable = (function($) {
 					"bLengthChange": false,             // 是否可以调整分页
 					"bServerSide": 	 true,		 		// 是否开启从服务器端获取数据
 					"bAutoWidth": 	 false,
-					"sAjaxSource":	"view",
+					"sAjaxSource":	"child",			// 查看子类信息请求地址
 					"fnServerData": function(sSource, aoData, fnCallback) {
 						if (self.oDetailParams)
 						{
-							self.options.iLoading = layer.load()
-							for (var i in self.oDetailParams) aoData.push({name:i, value:self.oDetailParams[i]})
+							self.options.iLoading = layer.load();
+							for (var i in self.oDetailParams) aoData.push({name:i, value:self.oDetailParams[i]});
 							// ajax请求
 							$.ajax({
 								url: sSource,
@@ -359,7 +359,7 @@ var MeTable = (function($) {
 		// 判断是否开启详情处理
 		if (self.bHandleDetails) {
 			// 初始化详情表格
-			if (this.bHandleDetails) this.details = $(this.oDetails.sTable).DataTable(this.oDetails.oTableOptions)
+			if (this.bHandleDetails) this.details = $(this.oDetails.sTable).DataTable(this.oDetails.oTableOptions);
 			// 新增、查看、编辑、删除
 			$('.me-table-insert-detail').click(function(evt){evt.preventDefault();self.insert(true);});
 			$(document).on('click', '.me-table-view-detail', function(evt){evt.preventDefault();self.view($(this).attr('table-data'), true)});

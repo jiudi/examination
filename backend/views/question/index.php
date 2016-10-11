@@ -29,22 +29,37 @@ $this->params['breadcrumbs'][] = $this->title;
 <!--表格数据-->
 <table class="table table-striped table-bordered table-hover" id="showTable"></table>
 
+<div class="col-xs-12 hidden">
+    <table id="detailTable" class="table table-striped table-bordered table-hover"></table>
+</div>
 <?php $this->beginBlock('javascript') ?>
 <script type="text/javascript">
-    var myTable = new MeTable({sTitle:"题库信息"},{
+    var aSubject = <?=$subject?>,
+        aSpecial = <?=$special?>,
+        aChapter = <?=$chapter?>,
+        aStatus  = <?=$status?>,
+        aColor   = <?=$color?>,
+        aType    = <?=$type?>,
+        myTable = new MeTable({sTitle:"题库信息"},{
         "aoColumns":[
 			oCheckBox,
-			{"title": "题目ID", "data": "id", "sName": "id", "edit": {"type": "hidden", "options": {}}, "bSortable": false}, 
-			{"title": "题目问题", "data": "quest_title", "sName": "quest_title", "edit": {"type": "text", "options": {"required":true,}}, "bSortable": false}, 
+			{"title": "题目ID", "data": "id", "sName": "id", "class":"details-control", "edit": {"type": "hidden", "options": {}}, "bSortable": false, "createdCell":function(td, data, rowArr, row, col){
+                $(td).html(data + '<b class="arrow fa fa-angle-down pull-right"></b>');
+            }},
+			{"title": "题目问题", "data": "quest_title", "sName": "quest_title", "edit": {"type": "text", "options": {"required":true}}, "bSortable": false},
 			{"title": "题目说明", "data": "question_content", "sName": "question_content", "edit": {"type": "text", "options": {}}, "bSortable": false}, 
-			{"title": "答案类型", "data": "answer_type", "sName": "answer_type", "edit": {"type": "text", "options": {"required":true,"number":true,}}, "bSortable": false}, 
-			{"title": "状态", "data": "status", "sName": "status", "edit": {"type": "text", "options": {"required":true,"number":true,}}, "bSortable": false}, 
-			{"title": "正确答案ID", "data": "answer_id", "sName": "answer_id", "edit": {"type": "text", "options": {"required":true,"number":true,}}, "bSortable": false}, 
+			{"title": "答案类型", "data": "answer_type", "sName": "answer_type", "value": aType, "edit": {"type": "select", "options": {"required":true,"number":true}}, "bSortable": false},
+			{"title": "状态", "data": "status", "sName": "status", "value": aStatus, "edit": {"type": "radio", "default": 1, "options": {"required":true,"number":true}}, "bSortable": false, "createdCell": function(td, data) {
+			    $(td).html(showSpan(aStatus, aColor, data));
+            }},
+			{"title": "正确答案", "data": "answer_id", "sName": "answer_id", "bSortable": false, "createdCell": function(td, data) {
+			    $(td).html(data == 0 ? '<span class="label label-sm label-warning">还没有设置答案</span>' : data)
+            }},
 			{"title": "创建时间", "data": "created_at", "sName": "created_at", "createdCell" : dateTimeString}, 
 			{"title": "修改时间", "data": "updated_at", "sName": "updated_at", "createdCell" : dateTimeString}, 
-			{"title": "所属科目", "data": "subject_id", "sName": "subject_id", "edit": {"type": "text", "options": {"required":true,"number":true,}}, "bSortable": false},
-			{"title": "所属章节", "data": "chapter_id", "sName": "chapter_id", "edit": {"type": "text", "options": {"required":true,"number":true,}}, "bSortable": false}, 
-			{"title": "所属专项分类", "data": "special_id", "sName": "special_id", "edit": {"type": "text", "options": {"required":true,"number":true,}}, "bSortable": false},
+			{"title": "所属科目", "data": "subject_id", "sName": "subject_id", "value": aSubject, "edit": {"type": "select", "default": 1, "options": {"required":true,"number":true}}, "bSortable": false},
+			{"title": "所属章节", "data": "chapter_id", "sName": "chapter_id", "value": aChapter, "edit": {"type": "select", "options": {"required":true,"number":true}}, "bSortable": false},
+			{"title": "所属专项分类", "data": "special_id", "sName": "special_id", "value": aSpecial, "edit": {"type": "select", "options": {"required":true,"number":true}}, "bSortable": false},
 			{"title": "错误人数", "data": "error_number", "sName": "error_number"}, 
 			oOperate
         ]
@@ -52,6 +67,15 @@ $this->params['breadcrumbs'][] = $this->title;
         // 设置隐藏和排序信息
         // "order":[[0, "desc"]],
         // "columnDefs":[{"targets":[2,3], "visible":false}],
+    }, {
+            "oTableOptions": {
+                "sAjaxSource": "<?=\yii\helpers\Url::toRoute(['answer/search'])?>",
+                "aoColumns":[
+                    {"title": "ID", "data": "id", "sName": "id", "edit":{"type":"hidden"}},
+                    {"title": "答案说明", "data": "name", "sName": "name", "edit":{"type":"text", "options":{"required": true, "rangelength": "[2, 1000]"}}},
+                    oOperateDetails
+                ]
+            }
     });
 
     /**

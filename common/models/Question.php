@@ -20,6 +20,64 @@ namespace common\models;
  */
 class Question extends TimestampModel
 {
+    // 状态
+    const STATUS_NO  = 0; // 停用
+    const STATUS_KEY = 1; // 启用
+
+    // 答案类型
+    const ANSWER_TYPE_ONE   = 1;   // 单选
+    const ANSWER_TYPE_JUDGE = 2;   // 判断
+    const ANSWER_TYPE_MULTI = 3;   // 多选
+
+    /**
+     * getStatusDesc() 获取状态说明信息
+     * @param null $intStatus
+     * @return array|mixed
+     */
+    public static function getStatusDesc($intStatus = null)
+    {
+        $array = [
+            self::STATUS_NO  => '停用',
+            self::STATUS_KEY => '启用'
+        ];
+
+        if ($intStatus !== null && isset($array[$intStatus])) $array = $array[$intStatus];
+        return $array;
+    }
+
+    /**
+     * getStatusColor() 获取状态对应颜色信息
+     * @param null $intStatus
+     * @return array|mixed
+     */
+    public static function getStatusColor($intStatus = null)
+    {
+        $array = [
+            self::STATUS_NO  => 'label-danger',
+            self::STATUS_KEY => 'label-success'
+        ];
+
+        if ($intStatus !== null && isset($array[$intStatus])) $array = $array[$intStatus];
+        return $array;
+    }
+
+    /**
+     * getTypeDesc() 获取问题类型说明信息
+     * @param null $intStatus
+     * @return array|mixed
+     */
+    public static function getTypeDesc($intStatus = null)
+    {
+        $array = [
+            self::ANSWER_TYPE_ONE => '单选',
+            self::ANSWER_TYPE_JUDGE => '判断',
+            self::ANSWER_TYPE_MULTI => '多选'
+        ];
+
+        if ($intStatus !== null && isset($array[$intStatus])) $array = $array[$intStatus];
+        return $array;
+    }
+
     /**
      * @inheritdoc
      */
@@ -34,7 +92,7 @@ class Question extends TimestampModel
     public function rules()
     {
         return [
-            [['quest_title', 'answer_id'], 'required'],
+            [['quest_title', 'answer_type', 'status'], 'required'],
             [['quest_title', 'question_content'], 'string'],
             [['answer_type', 'status', 'answer_id', 'created_at', 'updated_at', 'subject_id', 'chapter_id', 'special_id', 'error_number'], 'integer'],
         ];

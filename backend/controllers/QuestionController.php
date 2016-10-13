@@ -8,6 +8,7 @@
 namespace backend\controllers;
 
 use common\helpers\Helper;
+use common\models\Answer;
 use common\models\Chapter;
 use common\models\Question;
 use common\models\Special;
@@ -45,6 +46,18 @@ class QuestionController extends Controller
             'color'  => Json::encode(Question::getStatusColor()),           // 状态颜色
             'type'  => Json::encode(Question::getTypeDesc()),               // 答案类型
         ]);
+    }
+
+    /**
+     * actionChild() 查询子类信息
+     * @param $id
+     */
+    public function actionChild($id)
+    {
+        $answer = Answer::findAll(['qid' => $id]);
+        $this->arrJson['errCode'] = 223;
+        if ($answer) $this->handleJson($answer);
+        return $this->returnJson();
     }
 
     /**

@@ -157,7 +157,6 @@ AppAsset::register($this);
 
 <?php $this->endBody() ?>
 <script type="text/javascript">
-
     // 设置高度
     var iWHeight = $(window).height() - 187, iCHeight = $('#content').height();
     if (iWHeight > iCHeight) $('#content').css('min-height', iWHeight + 'px');

@@ -194,7 +194,7 @@ var MeTable = (function($) {
 				sModal:   		"#myDetailModal",
 				sFormId:  		"#myDetailForm",
 				sBaseUrl:	  	self.options.sBaseUrl, // 详情编辑的统一前缀
-				sActionUrl: 	{
+				aActionUrl: 	{
 					"insert": "create",
 					"update": "update",
 					"delete": "delete"
@@ -361,7 +361,8 @@ var MeTable = (function($) {
 			// 初始化详情表格
 			if (this.bHandleDetails) this.details = $(this.oDetails.sTable).DataTable(this.oDetails.oTableOptions);
 			// 新增、查看、编辑、删除
-			$('.me-table-insert-detail').click(function(evt){evt.preventDefault();self.insert(true);});
+			// $('.me-table-insert-detail').click(function(evt){evt.preventDefault();self.insert(true);});
+            $(document).on('click', '.me-table-insert-detail', function(evt){evt.preventDefault();self.insert(true, this);});
 			$(document).on('click', '.me-table-view-detail', function(evt){evt.preventDefault();self.view($(this).attr('table-data'), true)});
 			$(document).on('click', '.me-table-edit-detail', function(evt){evt.preventDefault();self.update($(this).attr('table-data'), true)});
 			$(document).on('click', '.me-table-del-detail', function(evt){evt.preventDefault();self.delete($(this).attr('table-data'), true)});
@@ -392,11 +393,11 @@ var MeTable = (function($) {
 	MeTable.prototype.search = function() {this.table.draw();};
 
 	// 初始化表单对象
-	MeTable.prototype.initForm = function(data, isDetail)
+	MeTable.prototype.initForm = function(data, isDetail, obj)
 	{
 		this.bDetail = isDetail;
         // 显示之前的处理
-        if (typeof this.beforeShow == 'function' && ! this.beforeShow(data, isDetail)) return false;
+        if (typeof this.beforeShow == 'function' && ! this.beforeShow(data, isDetail, obj)) return false;
 		layer.close(this.options.iViewLoading);
 		// 确定操作的表单和模型
 		var f = this.options.sFormId, m = this.options.sModal;
@@ -411,7 +412,7 @@ var MeTable = (function($) {
 
 		InitForm(f, data);					// 初始化表单
 		// 显示之后的处理
-		if (typeof this.afterShow == 'function' && ! this.afterShow(data, isDetail)) return false;
+		if (typeof this.afterShow == 'function' && ! this.afterShow(data, isDetail, obj)) return false;
 		$(m).modal({backdrop: "static"});   // 弹出信息
 	};
 
@@ -449,9 +450,9 @@ var MeTable = (function($) {
 	};
 
 	// 表格数据的添加
-	MeTable.prototype.insert = function(isDetail) {
+	MeTable.prototype.insert = function(isDetail, obj) {
 		this.actionType = "insert";
-		this.initForm(undefined, isDetail);
+		this.initForm(undefined, isDetail, obj);
 	};
 
 

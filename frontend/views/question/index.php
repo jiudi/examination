@@ -3,8 +3,7 @@ $this->title = '顺序练习';
 $this->registerCssFile('@web/css/question.css');
 ?>
 <ol class="breadcrumb">
-    <li><a href="/mnks/car-changsha.html">模拟考试</a></li>
-    <li><a href="/mnks/car-kemu1-changsha.html">科目一</a></li>
+    <li><a href="/">科目一</a></li>
     <li class="active"><a class="mylink">顺序练习</a></li>
 </ol>
 <div class="jkbd-page-lianxi inner jkbd-width wid-auto cl lianxi-type-sequence">
@@ -13,31 +12,31 @@ $this->registerCssFile('@web/css/question.css');
             <div class="shiti-item cl">
                 <div class="clearfix">
                     <p class="shiti-content pull-left">
-                        1/1311.  驾驶机动车在道路上违反道路交通安全法的行为，属于什么行为？
+                        1/1311.  <?=$question->quest_title?>
                     </p>
                     <span data-action="login" class="btn btn-default pull-right favor-tag">收藏</span>
                 </div>
 
+                <?php if ($answer) : ?>
                 <div class="shiti-wapper clearfix">
                     <div  class="options-container ">
-                        <p class="xuan"><i></i><span>A. 违章行为</span></p>
-                        <p class="dui"><i></i><span>B. 违法行为</span></p>
-                        <p class=""><i></i><span>C. 违规行为</span></p>
-                        <p class=""><i></i><span>D. 过失行为</span></p>
+                        <?php foreach ($answer as $value) : ?>
+                        <p class="xuan"><i></i><span>$value->name</span></p>
+                        <?php endforeach; ?>
+<!--                        <p class="dui"><i></i><span>B. 违法行为</span></p>-->
+<!--                        <p class=""><i></i><span>C. 违规行为</span></p>-->
+<!--                        <p class=""><i></i><span>D. 过失行为</span></p>-->
                     </div>
                 </div>
+                <?php endif; ?>
             </div>
         </div>
         <div class="tip-container">
-            <p class="weizuo">单选题，请选择你认为正确的答案！</p>
+            <p class="weizuo"> 单选题，请选择你认为正确的答案！</p>
         </div>
         <div class="static-container">
             错误率 <strong>18%</strong>
             做错人数 <strong>14403579</strong>
-        </div>
-        <div class="wapper">
-            <div class="zuocuo"> 做错 15 </div>
-            <div class="zuodui"> 做对 30 </div>
             <b class="tips"> 科目一题库共1203题，已完成333题 </b>
         </div>
         <div class="shiti-buttons clearfix mt-15">

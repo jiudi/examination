@@ -158,6 +158,13 @@ div.footer .icon {
 .user-info small {
     display: block;
 }
+ol.breadcrumb {
+    background: none;
+}
+
+ol.breadcrumb a {
+
+}
 
 .clearfix::before, .cl::before, .clearfix::after, .cl::after {
     content: "";
@@ -166,4 +173,20 @@ div.footer .icon {
 }
 .clearfix::after, .cl::after {
     clear: both;
+}
+
+.categroy-hd span {
+    color: #4c4c4c;
+    display: inline;
+    float: left;
+    font-size: 18px;
+}
+
+.categroy-hd h3 a {
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.categroy-bd li a:hover {
+    color: #1dacf9;
 }

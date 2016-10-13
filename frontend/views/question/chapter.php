@@ -1,76 +1,47 @@
 <?php
-    $this->title = '章节选择';
-    $this->registerCssFile('@web/css/question.css');
+
+use yii\helpers\Url;
+
+$this->title = '章节选择';
+$this->registerCssFile('@web/css/chapter.css');
 ?>
 <ol class="breadcrumb">
-    <li><a href="/mnks/car-changsha.html">模拟考试</a></li>
-    <li><a href="/mnks/car-kemu1-changsha.html">科目一</a></li>
-    <li class="active"><a class="mylink">顺序练习</a></li>
+    <li><a href="/">科目一</a></li>
+    <li class="active">章节练习</li>
 </ol>
 <div class="lx-main jkbd-width wid-auto">
-    <h1 class="lx-title text-center">长沙小车科目一 章节练习</h1>
-    <p class="lx-summary text-center">按照法规章节逐步分类</p>
-    <div class="lx-categroy ">
+    <h1 class="lx-title text-center">小车科目一 章节练习</h1>
+    <p class="text-center">按照法规章节逐步分类</p>
+    <div class="mt-15"></div>
+    <?php if ($chapter) : ?>
+    <?php foreach ($chapter as $value) : ?>
+    <div class="clearfix">
         <div class="categroy-hd ">
-            <i class="lx-icon "></i>
-            <h3>
-                <a class="hoverBdBlue" href="/mnks/exercise/1-car-kemu1-changsha-121.html">
-                    第一章 道路交通安全法律、法规和规章
+            <h3 class="pull-left">
+                <a class="go-to" num="<?=isset($counts[$value['id']]) ? $counts[$value['id']] : 0?>" href="<?=Url::toRoute(['question/index', 'type' => 'chapter', 'cid' => $value['id'], 'style' => 'sequence'])?>">
+                    <?=$value['name']?>
                 </a>
             </h3>
-            <span>（551题）</span>
+            <span class="pull-left">（<?=isset($counts[$value['id']]) ? $counts[$value['id']] : 0?>题）</span>
         </div>
         <div class="categroy-bd">
-            <ul class="dot-ul cl">
+            <ul>
                 <li>
-                    <a href="/mnks/exercise/1-car-kemu1-changsha-121.html" >顺序答题</a>
+                    <a class="go-to" num="<?=isset($counts[$value['id']]) ? $counts[$value['id']] : 0?>" href="<?=Url::toRoute(['question/index', 'type' => 'chapter', 'cid' => $value['id'], 'style' => 'sequence'])?>" >顺序答题</a>
                 </li>
                 <li>
-                    <a href="/mnks/exercise/1-car-kemu1-changsha-121.html#r=1" >随机答题</a>
+                    <a class="go-to" num="<?=isset($counts[$value['id']]) ? $counts[$value['id']] : 0?>" href="<?=Url::toRoute(['question/index', 'type' => 'chapter', 'cid' => $value['id'], 'style' => 'random'])?>" >随机答题</a>
                 </li>
             </ul>
         </div>
     </div>
-    <div class="lx-categroy ">
-        <div class="categroy-hd ">
-            <i class="lx-icon "></i>
-            <h3>
-                <a class="hoverBdBlue" href="/mnks/exercise/1-car-kemu1-changsha-122.html">第二章 交通信号</a>
-            </h3>
-            <span>（337题）</span>
-        </div>
-        <div class="categroy-bd">
-            <ul class="dot-ul cl">
-                <li><a href="/mnks/exercise/1-car-kemu1-changsha-122.html" >顺序答题</a></li>
-                <li><a href="/mnks/exercise/1-car-kemu1-changsha-122.html#r=1" >随机答题</a></li>
-            </ul>
-        </div>
-    </div>
-    <div class="lx-categroy ">
-        <div class="categroy-hd "> <i class="lx-icon "></i>
-            <h3><a class="hoverBdBlue"  href="/mnks/exercise/1-car-kemu1-changsha-123.html">第三章 安全行车、文明驾驶基础知识</a></h3>
-            <span>（284题）</span>
-        </div>
-        <div class="categroy-bd">
-            <ul class="dot-ul cl">
-                <li><a href="/mnks/exercise/1-car-kemu1-changsha-123.html" >顺序答题</a></li>
-                <li><a href="/mnks/exercise/1-car-kemu1-changsha-123.html#r=1" >随机答题</a></li>
-            </ul>
-        </div>
-    </div>
-    <div class="lx-categroy lil">
-        <div class="categroy-hd ">
-            <i class="lx-icon "></i>
-            <h3>
-                <a class="hoverBdBlue"  href="/mnks/exercise/1-car-kemu1-changsha-124.html">第四章 机动车驾驶操作相关基础知识</a>
-            </h3>
-            <span>（139题）</span>
-        </div>
-        <div class="categroy-bd">
-            <ul class="dot-ul cl">
-                <li><a href="/mnks/exercise/1-car-kemu1-changsha-124.html" >顺序答题</a></li>
-                <li><a href="/mnks/exercise/1-car-kemu1-changsha-124.html#r=1" >随机答题</a></li>
-            </ul>
-        </div>
-    </div>
+    <?php endforeach; ?>
+    <?php endif; ?>
 </div>
+<?php $this->beginBlock('javascript') ?>
+<script type="text/javascript">
+    $('a.go-to').click(function(evt) {
+        if ( ! parseInt($(this).attr('num'))) evt.preventDefault();
+    })
+</script>
+<?php $this->endBlock() ?>

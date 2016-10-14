@@ -86,13 +86,12 @@ $this->params['breadcrumbs'][] = $this->title;
 
      $(function(){
          myTable.init();
+         // 文件上传
+         aceFileInput('#ace_myfile', sUpload, false, {"before_remove":function(){
+             if ($("#myfile").val()){ $.post(sUpload, {"face":$("#myfile").val()})}
+             $("#myfile").val('');
+             return true;
+         }});
      });
-
-    // 文件上传
-    aceFileInput('#ace_myfile', sUpload, false, {"before_remove":function(){
-        if ($("#myfile").val()){ $.post(sUpload, {"face":$("#myfile").val()})}
-        $("#myfile").val('');
-        return true;
-    }});
 </script>
 <?php $this->endBlock(); ?>

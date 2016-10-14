@@ -76,12 +76,13 @@ $this->params['breadcrumbs'][] = $this->title;
       * myTable.beforeSave(object data) return true 前置
       * myTable.afterSave(object data)  return true 后置
       */
+     $(function(){
+         myTable.init();
 
-    myTable.init();
-
-    // 时间选项
-    $('.me-datetime').datetimepicker({
-        format: 'YYYY-MM-DD H:mm:s'
-    });
+         // 时间选项
+         $('.me-datetime').datetimepicker({
+             format: 'YYYY-MM-DD H:mm:s'
+         });
+     });
 </script>
 <?php $this->endBlock(); ?>

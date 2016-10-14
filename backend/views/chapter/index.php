@@ -59,6 +59,8 @@ $this->params['breadcrumbs'][] = $this->title;
       * myTable.afterSave(object data)  return true 后置
       */
 
-     myTable.init();
+     $(function(){
+         myTable.init();
+     });
 </script>
 <?php $this->endBlock(); ?>

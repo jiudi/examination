@@ -19,6 +19,7 @@ class QuestionController extends Controller
      */
     public function actionIndex()
     {
+        // 接收参数
         $request = Yii::$app->request;
         $sType   = $request->get('type', 'all');       // 类型 chapter and special and null
         $intCid  = (int)$request->get('cid');          // 对应类型子类ID
@@ -26,6 +27,8 @@ class QuestionController extends Controller
         $where = [
             'status' => Question::STATUS_KEY
         ];
+
+        // 根据类型查询数据
         switch ($sType) {
             case 'chapter':
                 $where['chapter_id'] = $intCid;
@@ -35,13 +38,19 @@ class QuestionController extends Controller
                 break;
         }
 
-        $question = Question::findOne($where);
+        // 开始查询
+        $allTotal = (int)Question::find()->where(['subject_id' => 1])->count(); // 题库题目数
+        $total    = (int)Question::find()->where($where)->count();              // 题目数
+        $question = Question::findOne($where);                                  // 数据
         if ($question) {
             // 查询问题答案
             $answer = Answer::findAll(['qid' => $question->id]);
             return $this->render('index', [
+                'allTotal' => $allTotal,
+                'total'    => $total,
                 'question' => $question,
                 'answer'   => $answer,
+                'style'    => $sStyle,
             ]);
         } else {
             throw new HttpException(401, '问题不存在');

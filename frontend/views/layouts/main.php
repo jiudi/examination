@@ -39,7 +39,7 @@ AppAsset::register($this);
                 <li><a href="javascript:;" class="register no-login <?=Yii::$app->user->isGuest ? '' : 'hide'?>">注册</a></li>
                 <li class="dropdown user-login <?=Yii::$app->user->isGuest ? 'hide' : ''?>">
                     <a href="#" class="dropdown-toggle user" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                        <img class="nav-user-photo" id="user-face" src="<?=Yii::$app->user->isGuest ? '' : (Yii::$app->user->identity->face ? Yii::$app->user->identity->face : '/images/avatar.jpg')?>" alt="<?=Yii::$app->user->isGuest ? '' : (Yii::$app->user->identity->username ? Yii::$app->user->identity->username : Yii::$app->user->identity->email)?>">
+                        <img class="nav-user-photo" id="user-face" src="<?=Yii::$app->user->isGuest || ! Yii::$app->user->identity->face ? '/images/avatar.jpg' : Yii::$app->user->identity->face?>" alt="<?=Yii::$app->user->isGuest ? '' : (Yii::$app->user->identity->username ? Yii::$app->user->identity->username : Yii::$app->user->identity->email)?>">
                         <span class="user-info"><small>Welcome,</small> <span class="text-danger" id="username"><?=Yii::$app->user->isGuest ? '' : (Yii::$app->user->identity->username ? Yii::$app->user->identity->username : Yii::$app->user->identity->email)?></span></span>
                         <span class="caret"></span>
                     </a>
@@ -49,7 +49,7 @@ AppAsset::register($this);
                         <li><a href="/resource/Simpli"> 我的收藏 </a></li>
                         <li role="separator" class="divider"></li>
                         <li class="dropdown-header">其他操作</li>
-                        <li><a href="<?=Url::to('site/logout')?>" class=""> 退出登录 </a></li>
+                        <li><a href="<?=Url::toRoute(['site/logout'])?>" class=""> 退出登录 </a></li>
                     </ul>
                 </li>
             </ul>
@@ -87,7 +87,7 @@ AppAsset::register($this);
         <p class="tips normal"> 注册/登录后可保存做题进度 </p>
     </div>
     <div class="content-container">
-        <form class="login-form form-horizontal user-form" id="login-form" action="<?=Url::to('site/login')?>">
+        <form class="login-form form-horizontal user-form" id="login-form" action="<?=Url::toRoute(['site/login'])?>">
             <input type="hidden" value="<?php echo Yii::$app->getRequest()->getCsrfToken(); ?>" name="_csrf" />
             <div class="form-group">
                 <input name="username" class="i-username form-control" required="true" email="true" rangelength="[2, 100]" placeholder="请输入账号邮箱" type="text" />
@@ -110,7 +110,7 @@ AppAsset::register($this);
         <p class="tips normal"> 注册/登录后可保存做题进度 </p>
     </div>
     <div class="content-container">
-        <form class="register-form form-horizontal user-form" id="register-form" action="<?=Url::to('site/register')?>">
+        <form class="register-form form-horizontal user-form" id="register-form" action="<?=Url::toRoute(['site/register'])?>">
             <input type="hidden" value="<?php echo Yii::$app->getRequest()->getCsrfToken(); ?>" name="_csrf" />
             <div class="form-group">
                 <input name="username" class="form-control" required="true" rangelength="[2, 100]" placeholder="请输入昵称" type="text">

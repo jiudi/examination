@@ -1,10 +1,3 @@
-.lianxi-container .tip-container {
-    font-size: 13px;
-    height: 21px;
-    margin: 10px 0 20px;
-    padding-left: 20px;
-}
-
 .lianxi-container .shiti-content {
     color: #4c4c4c;
     font-size: 18px;
@@ -36,12 +29,12 @@ span.favor-tag {
     background: url(../images/bg.png) -200px -498px no-repeat;
 }
 
-.lianxi-container .tip-container {
-    margin: 10px 0 0;
+div.tip-container {
     font-size: 13px;
+    height: auto;
+    min-height: 21px;
+    margin: 10px 0 20px 0;
     padding-left: 20px;
-    height: 21px;
-    margin-bottom: 20px;
     color: #999;
 }
 
@@ -79,4 +72,29 @@ input, textarea, select {
 a {
     color: inherit;
     text-decoration: none;
+}
+
+div.explain-container {
+    margin-top: 39px;
+}
+div.explain-container .title {
+    border-bottom: 1px solid #f2f2f2;
+    font-size: 18px;
+    color: #333;
+    height:28px;
+    line-height: 28px;
+}
+
+div.explain-container .ef-content {
+    padding-top: 17px;
+    height:auto;
+}
+
+div.explain-container .ef-content .wapper {
+    font-size: 16px;
+    color: #b28850;
+    line-height: 1.6;
+}
+b.tips span {
+    font-weight: bold;
 }

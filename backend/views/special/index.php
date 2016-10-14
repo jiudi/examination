@@ -82,6 +82,8 @@ $this->params['breadcrumbs'][] = $this->title;
          return true;
      };
 
-     myTable.init();
+    $(function(){
+        myTable.init();
+    });
 </script>
 <?php $this->endBlock(); ?>

@@ -578,6 +578,7 @@ var MeTable = (function($) {
             html = '<form action="' + self.options.sExportUrl + '" target="_blank" method="POST" class="me-export" style="display:none">';
         html += '<input type="hidden" name="iSize" value="' + (bAll ? 0 : $('select[name=' + self.options.sTable.replace('#', '') + '_length]').val()) + '"/>';
         html += '<input type="hidden" name="sTitle" value="' + self.options.sTitle + '"/>';
+        html += '<input type="hidden" name="_csrf" value="' + $('meta[name=csrf-token]').attr('content') + '"/>';
 
         // 添加字段信息
         this.tableOptions.aoColumns.forEach(function(k, v){

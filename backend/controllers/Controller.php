@@ -21,7 +21,7 @@ use yii\web\UnauthorizedHttpException;
  */
 class Controller extends \common\controllers\Controller
 {
-    public    $admins = null; // 'enableCsrfValidation' => true // 配置文件关闭CSRF
+    public    $admins = null; // 管理员信息
     protected $sort   = 'id'; // 默认排序字段
 
     // 权限验证

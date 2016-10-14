@@ -66,7 +66,8 @@ input, textarea, select {
 .tongji-container label {
     color: #999;
     font-size: 14px;
-    width: 110px;
+    width:auto;
+    min-width: 110px;
 }
 
 a {
@@ -97,4 +98,10 @@ div.explain-container .ef-content .wapper {
 }
 b.tips span {
     font-weight: bold;
+}
+
+.lianxi-container .shiti-item .favor-tag.on {
+    background-image: url(../images/fovor1.png);
+    border-color: #1dacf9;
+    color: #1dacf9;
 }

@@ -24,7 +24,8 @@ class UserController extends \common\controllers\UserController
     public function actionCreateCollect()
     {
         $intQid = (int)Yii::$app->request->post('qid');
-        if ($intQid) {
+        $strType = Yii::$app->request->post('type');
+        if ($intQid && $strType && in_array($strType, ['create', 'remove'])) {
             // 查询对象
             $model = UserCollect::findOne(['user_id' => Yii::$app->user->id]);
             if ( ! $model) {
@@ -33,16 +34,28 @@ class UserController extends \common\controllers\UserController
                 $model->qids = [];
             }
 
-            // 获取之前的收藏信息
-            $this->arrJson['errCode'] = 222;
-            if ( ! $model->qids || !in_array($intQid, $model->qids)) {
-                $array = $model->qids;
-                array_push($array, $intQid);
+            $array = $model->qids;
+            $isTrue = false;
+            if ($strType == 'create') {
+                // 获取之前的收藏信息
+                $this->arrJson['errCode'] = 222;
+                if (! in_array($intQid, $model->qids) || empty($model->qids)) {
+                    array_push($array, $intQid);
+                    $array = array_unique($array);
+                    $isTrue = true;
+                }
+            } else {
+                $this->arrJson['errCode'] = 224;
+                if (in_array($intQid, $model->qids)) {
+                    $intKey = array_search($intQid, $array);
+                    if ($intKey !== false) unset($array[$intKey]);
+                    $isTrue = true;
+                }
+            }
+
+            if ($isTrue) {
                 $model->qids = Json::encode($array);
-                if ($model->save())
-                    $this->handleJson($model);
-                else
-                    var_dump($model->getErrorString());
+                if ($model->save()) $this->handleJson($model);
             }
         }
 

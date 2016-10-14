@@ -63,7 +63,7 @@ $this->params['breadcrumbs'][] = $this->title;
 			{"title": "题目ID", "data": "id", "sName": "id", "class":"details-control", "edit": {"type": "hidden", "options": {}}, "bSortable": false, "createdCell":function(td, data, rowArr, row, col){
                 $(td).html(data + '<b class="arrow fa fa-angle-down pull-right"></b>');
             }},
-			{"title": "题目问题", "data": "quest_title", "sName": "quest_title", "edit": {"type": "text", "options": {"required":true}}, "bSortable": false},
+			{"title": "题目问题", "data": "question_title", "sName": "question_title", "edit": {"type": "text", "options": {"required":true}}, "bSortable": false},
 			{"title": "题目说明", "data": "question_content", "sName": "question_content", "edit": {"type": "text", "options": {}}, "bSortable": false}, 
 			{"title": "答案类型", "data": "answer_type", "sName": "answer_type", "value": aType, "edit": {"type": "select", "options": {"required":true,"number":true}}, "bSortable": false},
 			{"title": "状态", "data": "status", "sName": "status", "value": aStatus, "edit": {"type": "radio", "default": 1, "options": {"required":true,"number":true}}, "bSortable": false, "createdCell": function(td, data) {

@@ -1,13 +1,15 @@
 <?php
 namespace frontend\controllers;
 
+use common\models\UserCollect;
+use Yii;
 use common\models\Answer;
 use common\models\Question;
-use Yii;
 use common\models\Chapter;
 use common\models\Special;
 use common\controllers\Controller;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Json;
 use yii\web\HttpException;
 
 
@@ -25,8 +27,12 @@ class QuestionController extends Controller
         $intCid  = (int)$request->get('cid');          // 对应类型子类ID
         $sStyle  = $request->get('style', 'sequence'); // 答题类型 sequence 顺序 and random 随机
         $where = [
-            'status' => Question::STATUS_KEY
+            'status' => Question::STATUS_KEY,
+            'subject_id' => 1
         ];
+
+        // 全部题目
+        $allTotal = Question::find()->where($where)->count(); // 全部题库
 
         // 根据类型查询数据
         switch ($sType) {
@@ -39,18 +45,23 @@ class QuestionController extends Controller
         }
 
         // 开始查询
-        $allTotal = (int)Question::find()->where(['subject_id' => 1])->count(); // 题库题目数
-        $total    = (int)Question::find()->where($where)->count();              // 题目数
-        $question = Question::findOne($where);                                  // 数据
+        $total    = Question::find()->where($where)->count();
+        $all = Question::find()->select('id')->where($where)->indexBy('id')->all();
+        $ids = array_keys($all);
+        $question = Question::findOne($where); // 查询一条数据
+
         if ($question) {
             // 查询问题答案
             $answer = Answer::findAll(['qid' => $question->id]);
             return $this->render('index', [
-                'allTotal' => $allTotal,
-                'total'    => $total,
+                'allTotal' => (int)$allTotal,
+                'total'    => (int)$total,
+                'hasCollect'  => UserCollect::hasCollect($question->id),
+                'allIds'   => Json::encode($ids),
                 'question' => $question,
                 'answer'   => $answer,
                 'style'    => $sStyle,
+                'type'     => $sType,
             ]);
         } else {
             throw new HttpException(401, '问题不存在');
@@ -123,5 +134,72 @@ class QuestionController extends Controller
             'special' => $all,
             'counts'  => $counts,
         ]);
+    }
+
+    /**
+     * actionRecord() 记录用户做题信息
+     * @return mixed|string
+     */
+    public function actionRecord()
+    {
+        $request = Yii::$app->request;
+        $intQid  = $request->post('qid');
+        $strType = $request->post('sType', 'no');
+        if ($intQid) {
+            $question = Question::findOne($intQid);
+            $this->arrJson['errCode'] = 220;
+            if ($question) {
+                $cookie = $request->cookies;
+
+                $values = $cookie->get($strType);
+                if ($values == null) {
+                    $values = [$intQid];
+                } else {
+                    $values = Json::decode($values, true);
+                    array_push($values, $intQid);
+                    $values = array_unique($values);
+                }
+
+                // 添加COOKIE
+                Yii::$app->response->cookies->add(new \yii\web\Cookie([
+                    'name' => $strType,
+                    'value' => Json::encode($values),
+                    'expire' => time() + 86400,
+                ]));
+
+                // 修改记录信息
+                if ($strType == 'no') $question->error_number ++;
+                $question->do_number ++;
+                $question->save();
+
+                $this->handleJson($values);
+
+            }
+        }
+
+        return $this->returnJson();
+    }
+
+    /**
+     * actionGetQuestion() 获取问题和答案信息
+     * @return mixed|string
+     */
+    public function actionGetQuestion()
+    {
+        $id = (int)Yii::$app->request->post('qid');
+        if ($id) {
+            $this->arrJson['errCode'] = 220;
+            $question = Question::findOne($id);
+            if ($question) {
+                $answers = Answer::findAll(['qid' => $question->id]);
+                $this->handleJson([
+                    'hasCollect' => UserCollect::hasCollect($question->id),
+                    'question' => $question,
+                    'answers' => $answers
+                ]);
+            }
+        }
+
+        return $this->returnJson();
     }
 }

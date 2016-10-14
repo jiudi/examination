@@ -6,7 +6,7 @@ namespace common\models;
  * This is the model class for table "{{%question}}".
  *
  * @property integer $id
- * @property string $quest_title
+ * @property string $question_title
  * @property string $question_content
  * @property integer $answer_type
  * @property integer $status
@@ -17,6 +17,7 @@ namespace common\models;
  * @property integer $chapter_id
  * @property integer $special_id
  * @property integer $error_number
+ * @property integer $do_number
  */
 class Question extends TimestampModel
 {
@@ -92,9 +93,9 @@ class Question extends TimestampModel
     public function rules()
     {
         return [
-            [['quest_title', 'answer_type', 'status'], 'required'],
-            [['quest_title', 'question_content'], 'string'],
-            [['answer_type', 'status', 'answer_id', 'created_at', 'updated_at', 'subject_id', 'chapter_id', 'special_id', 'error_number'], 'integer'],
+            [['question_title', 'answer_type', 'status'], 'required'],
+            [['question_title', 'question_content'], 'string'],
+            [['answer_type', 'status', 'answer_id', 'created_at', 'updated_at', 'subject_id', 'chapter_id', 'special_id', 'error_number', 'do_number'], 'integer'],
         ];
     }
 
@@ -105,7 +106,7 @@ class Question extends TimestampModel
     {
         return [
             'id' => '题目ID',
-            'quest_title' => '题目问题',
+            'question_title' => '题目问题',
             'question_content' => '题目说明',
             'answer_type' => '答案类型(1 单选 2 多选 3 判断)',
             'status' => '状态(1 启用 0 停用)',
@@ -116,6 +117,7 @@ class Question extends TimestampModel
             'chapter_id' => '所属章节',
             'special_id' => '专项ID',
             'error_number' => '错误人数',
+            'do_number' => '做过该题人数',
         ];
     }
 }

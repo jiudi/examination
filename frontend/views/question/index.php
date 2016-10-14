@@ -1,5 +1,6 @@
 <?php
 
+use yii\helpers\Url;
 use \common\models\Question;
 
 $this->title = '顺序练习';
@@ -15,9 +16,9 @@ $this->registerCssFile('@web/css/question.css');
             <div class="shiti-item cl">
                 <div class="clearfix">
                     <p class="shiti-content pull-left">
-                        <span id="o-number">1</span>/<?=$total?>.  <?=$question->quest_title?>
+                        <span id="o-number">1</span>/<?=$total?>.  <span id="question-title"><?=$question->question_title?></span>
                     </p>
-                    <span id="user-collect" class="btn btn-default pull-right user-login favor-tag <?=Yii::$app->user->isGuest ? 'hide' : ''?>">收藏</span>
+                    <span id="user-collect" class="btn btn-default pull-right user-login favor-tag <?=$hasCollect ? 'on' : ''?><?=Yii::$app->user->isGuest ? 'hide' : ''?>">收藏</span>
                 </div>
 
                 <?php if ($answer) : ?>
@@ -26,10 +27,6 @@ $this->registerCssFile('@web/css/question.css');
                         <?php foreach ($answer as $value) : ?>
                         <p answer="<?=$value->id?>"><i></i><span><?=$value->name?></span></p>
                         <?php endforeach; ?>
-<!--                        <p class="xuan"><i></i><span></span></p>-->
-<!--                        <p class="dui"><i></i><span>B. 违法行为</span></p>-->
-<!--                        <p class=""><i></i><span>C. 违规行为</span></p>-->
-<!--                        <p class=""><i></i><span>D. 过失行为</span></p>-->
                     </div>
                 </div>
                 <?php endif; ?>
@@ -40,7 +37,7 @@ $this->registerCssFile('@web/css/question.css');
                 <label class="text-danger"> 回答错误！</label>
                 正确答案：<strong id="answer-yes" class="text-success">A</strong>
             </p>
-            <p class="weizuo">
+            <p class="weizuo" id="answer-type">
                 <?php
                 switch ($question->answer_type) {
                     case Question::ANSWER_TYPE_ONE:
@@ -53,12 +50,13 @@ $this->registerCssFile('@web/css/question.css');
                         echo '选择题，请选择你认为正确的答案！';
                 }
                 ?>
-
+            </p>
+            <p>
+                错误率 <strong id="do-error-rate"><?=$question->do_number != 0 ? (round($question->error_number / $question->do_number * 100, 2 ) . '%') : '0%'?></strong> 　
+                做错人数 <strong id="do-number"><?=$question->error_number?></strong> 　
             </p>
         </div>
         <div class="static-container">
-            错误率 <strong id="do-error-rate"><?=$question->do_number != 0 ? (round($question->error_number / $question->do_number * 100, 2 ) . '%') : '0%'?></strong> 　
-            做错人数 <strong id="do-number"><?=$question->error_number?></strong> 　
             <b class="tips"> 科目一题库共 <span class="text-success"><?=$allTotal?></span> 题，已完成 <span id="do-finish" class="text-info">0</span> 题 </b>
         </div>
         <div class="shiti-buttons clearfix mt-15">
@@ -68,7 +66,7 @@ $this->registerCssFile('@web/css/question.css');
             <button id="see-info" type="button" class="btn btn-default pull-right ml-15">查看详解</button>
         </div>
         <div class="tongji-container clearfix mt-15">
-            <label class="daduinext float-l"><input type="checkbox" data-item="daduinext" checked=""><span>答对自动下一题</span></label>
+            <label class="daduinext float-l"><input type="checkbox" id="isAutoNext" checked="checked"><span>答对自动下一题</span></label>
             <label class="x-dadui float-l">答对：<span> <strong id="do-yes" class="text-success">0</strong> 题</span></label>
             <label class="x-dacuo float-l">答错：<span> <strong id="do-no" class="text-danger">0</strong> 题</span></label>
             <label class="x-lv float-l">正确率：<span id="do-accuracy">100%</span></label>
@@ -87,65 +85,186 @@ $this->registerCssFile('@web/css/question.css');
 </div>
 <?php $this->beginBlock('javascript') ?>
 <script type="text/javascript">
-    var answerYes   = '<?=$question->answer_id?>',
-        iQuestionId = <?=$question->id?>,
-        isCollect   = false,
-        iDoFinish   = 0,
-        isDo        = false;
-    // 选择答案
-    $('#answers p').click(function() {
-        if (isDo) return false;
-        isDo = true;
-        // 判断对错
-        if ($(this).attr('answer') == answerYes) {
-            // 正确
-            $(this).addClass('dui');
-        } else {
-            // 错误
-            $(this).addClass('xuan');
-            var doYes = $('#answers p[answer=' + answerYes + ']').addClass('dui');
-            $('#do-no-answer').removeClass('hide').find('#answer-yes').html(doYes.text());
+    var allIds = <?=$allIds?>,                   // 全部问题
+        answerYes = '<?=$question->answer_id?>', // 正确答案ID
+        iQuestionId = <?=$question->id?>,        // 问题ID
+        iDoFinish = 0,                           // 做了多少题目
+        isDo = false,                            // 这题是否已经做了
+        iDoYesNum = 0,                           // 做对了多少题
+        iDoNoNum = 0,                            // 做错了多少题目
+        sType = '<?=$type?>',                    // 类型
+        sStyle = '<?=$style?>',                  // 风格
+        sAnswerType = 'no',                      // 答案类型
+        doIds = [];
+
+    function getQuestion(type) {
+        var errMsg = '';
+        switch (type) {
+            case 'next':
+                if (allIds[0]) {
+                    doIds.push(allIds.shift());
+                } else {
+                    errMsg = '没有下一题了';
+                }
+                break;
+            case 'prev':
+                if (doIds.length > 0) {
+                    allIds.unshift(doIds.pop());
+                } else {
+                    errMsg = '没有上一题了';
+                }
+                break;
+            default:
+                errMsg = '你的选择错误';
         }
 
-        iDoFinish ++;
-        $('#do-finish').html(iDoFinish);
-    });
+        if (errMsg) {
+            return layer.msg(errMsg, {icon:2})
+        }
 
-    // 收藏问题
-    $('#user-collect').click(function(){
-        if (iQuestionId > 0) {
-            if (isCollect) {
-                layer.msg('您之前已经收藏该问题了, 不能重复收藏哦！');
+        console.info(allIds);
+        console.info(doIds);
+
+        $('#info').addClass('hide');
+        if (allIds.length > 0) {
+            var ol = layer.load();
+            $.ajax({
+                url: '<?=Url::toRoute(['question/get-question'])?>',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    qid: allIds[0]
+                }
+            }).always(function(){
+                layer.close(ol);
+            }).done(function(json){
+                if (json.errCode == 0) {
+
+                    // 处理显示问题
+                    if (json.data.question) {
+                        var question = json.data.question, answer_type = '', html = '';
+                        sAnswerType  = 'no';
+                        isCollect = false;
+                        isDo = false;
+                        answerYes = question.answer_id;
+                        iQuestionId = question.id;
+                        $('#do-no-answer').addClass('hide');
+                        $('#question-title').html(question.question_title);
+                        $('#question-content').html(question.question_content);
+                        $('#do-number').html(question.error_number);
+                        json.data.hasCollect ? $('#user-collect').addClass('on') : $('#user-collect').removeClass('on');
+                        var errorRate = question.do_number ? question.error_number/question.do_number * 100 : 0;
+                        $('#do-error-rate').html(errorRate.toFixed(2) + '%');
+                        switch (question.answer_type) {
+                            case 1:answer_type = '单选题，请选择你认为正确的答案！';break;
+                            case 2:answer_type = '判断题，请判断对错！';break;
+                            default:answer_type = '选择题，请选择你认为正确的答案！';
+                        }
+                        $('#answer-type').html(answer_type);
+                        if (json.data.answers) {
+                            for(var i in json.data.answers) {
+                                html += '<p answer="'+ json.data.answers[i]["id"] +'"><i></i><span>'+ json.data.answers[i]["name"] +'</span></p>';
+                            }
+                        }
+
+                        $('#answers').html(html);
+                    }
+                } else {
+                    layer.msg(json.errMsg, {icon: 2});
+                }
+            }).fail(function(error) {
+                layer.msg('服务器繁忙, 请稍候再试...');
+            });
+        } else {
+            layer.alert('该题库都已经做完了哦！', {icon:0, "title": "温馨提醒"})
+        }
+    }
+
+    $(window).ready(function(){
+        // 选择答案
+        $(document).on('click', '#answers p', function() {
+            if (isDo) return false;
+            isDo = true;
+            // 判断对错
+            if ($(this).attr('answer') == answerYes) {
+                // 正确
+                $(this).addClass('dui');
+                sAnswerType = 'yes';
+                iDoYesNum ++;
+                $('#do-yes').html(iDoYesNum);
             } else {
+                // 错误
+                $(this).addClass('xuan');
+                var doYes = $('#answers p[answer=' + answerYes + ']').addClass('dui');
+                $('#do-no-answer').removeClass('hide').find('#answer-yes').html(doYes.text());
+                iDoNoNum ++;
+                $('#do-no').html(iDoNoNum);
+            }
+
+            // 请求记录信息
+            $.ajax({
+                url: '<?=Url::toRoute(['question/record'])?>',
+                data: {
+                    qid: iQuestionId,
+                    sType: sAnswerType
+                },
+                type: 'POST',
+                dataType: 'json'
+            }).always(function(){
+                iDoFinish ++;
+                $('#do-finish').html(iDoFinish);
+                var doAccuracy = iDoYesNum / iDoFinish * 100;
+                $('#do-accuracy').html(doAccuracy.toFixed(2) + '%');
+            }).done(function(json){
+                if (json.errCode == 0 && $('#isAutoNext').is(':checked') && sAnswerType == 'yes') {
+                    // 自动下一题
+                    getQuestion('next');
+                }
+            });
+        });
+
+        // 上一题 下一题
+        $('#prev').add('#next').click(function(){
+            getQuestion($(this).attr('id'));
+        });
+
+        // 收藏问题
+        $('#user-collect').click(function(){
+            var self = $(this), hasCollect = self.hasClass('on');
+            if (iQuestionId > 0) {
                 $.ajax({
-                    url: '<?=\yii\helpers\Url::toRoute(['user/create-collect'])?>',
+                    url: '<?=Url::toRoute(['user/create-collect'])?>',
                     data: {
-                        qid: iQuestionId
+                        qid: iQuestionId,
+                        type: hasCollect ? 'remove' : 'create'
                     },
                     type: 'POST',
                     dataType: 'json'
+                }).always(function(){
+                    isCollect = true;
                 }).done(function(json){
                     if (json.errCode == 0) {
-                        layer.msg('收藏成功', {icon:6});
+                        layer.msg(hasCollect ? '你取消了收藏' : '收藏成功', {icon:6});
+                        hasCollect ? self.removeClass('on') : self.addClass('on');
                     } else {
                         layer.msg(json.errMsg, {icon:5})
                     }
                 });
+            } else {
+                layer.msg('请选择问题收藏');
             }
-        } else {
-            layer.msg('请选择问题收藏');
-        }
-    });
+        });
 
-    // 查询详情
-    $('#see-info').click(function(){
-        if ($("#info").hasClass('hide')) {
-            $(this).html('收起详情');
-            $('#info').removeClass('hide');
-        } else {
-            $(this).html('查看详情');
-            $('#info').addClass('hide');
-        }
+        // 查询详情
+        $('#see-info').click(function(){
+            if ($("#info").hasClass('hide')) {
+                $(this).html('收起详情');
+                $('#info').removeClass('hide');
+            } else {
+                $(this).html('查看详情');
+                $('#info').addClass('hide');
+            }
+        });
     });
 </script>
 <?php $this->endBlock() ?>

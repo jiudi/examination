@@ -92,8 +92,8 @@ $this->registerCssFile('@web/css/question.css');
         isDo = false,                            // 这题是否已经做了
         iDoYesNum = 0,                           // 做对了多少题
         iDoNoNum = 0,                            // 做错了多少题目
-        sType = '<?=$type?>',                    // 类型
-        sStyle = '<?=$style?>',                  // 风格
+//        sType = '<?=$type?>//',                    // 类型
+//        sStyle = '<?=$style?>//',                  // 风格
         sAnswerType = 'no',                      // 答案类型
         doIds = [];
 
@@ -103,16 +103,16 @@ $this->registerCssFile('@web/css/question.css');
             case 'next':
                 if (allIds[0]) {
                     doIds.push(allIds.shift());
-                } else {
-                    errMsg = '没有下一题了';
                 }
+
+                if (! allIds[0]) errMsg = '没有下一题了';
                 break;
             case 'prev':
                 if (doIds.length > 0) {
                     allIds.unshift(doIds.pop());
-                } else {
-                    errMsg = '没有上一题了';
                 }
+
+                if (doIds.length <= 0) errMsg = '没有上一题了';
                 break;
             default:
                 errMsg = '你的选择错误';
@@ -126,58 +126,54 @@ $this->registerCssFile('@web/css/question.css');
         console.info(doIds);
 
         $('#info').addClass('hide');
-        if (allIds.length > 0) {
-            var ol = layer.load();
-            $.ajax({
-                url: '<?=Url::toRoute(['question/get-question'])?>',
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                    qid: allIds[0]
-                }
-            }).always(function(){
-                layer.close(ol);
-            }).done(function(json){
-                if (json.errCode == 0) {
+        var ol = layer.load();
+        $.ajax({
+            url: '<?=Url::toRoute(['question/get-question'])?>',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                qid: allIds[0]
+            }
+        }).always(function(){
+            layer.close(ol);
+        }).done(function(json){
+            if (json.errCode == 0) {
 
-                    // 处理显示问题
-                    if (json.data.question) {
-                        var question = json.data.question, answer_type = '', html = '';
-                        sAnswerType  = 'no';
-                        isCollect = false;
-                        isDo = false;
-                        answerYes = question.answer_id;
-                        iQuestionId = question.id;
-                        $('#do-no-answer').addClass('hide');
-                        $('#question-title').html(question.question_title);
-                        $('#question-content').html(question.question_content);
-                        $('#do-number').html(question.error_number);
-                        json.data.hasCollect ? $('#user-collect').addClass('on') : $('#user-collect').removeClass('on');
-                        var errorRate = question.do_number ? question.error_number/question.do_number * 100 : 0;
-                        $('#do-error-rate').html(errorRate.toFixed(2) + '%');
-                        switch (question.answer_type) {
-                            case 1:answer_type = '单选题，请选择你认为正确的答案！';break;
-                            case 2:answer_type = '判断题，请判断对错！';break;
-                            default:answer_type = '选择题，请选择你认为正确的答案！';
-                        }
-                        $('#answer-type').html(answer_type);
-                        if (json.data.answers) {
-                            for(var i in json.data.answers) {
-                                html += '<p answer="'+ json.data.answers[i]["id"] +'"><i></i><span>'+ json.data.answers[i]["name"] +'</span></p>';
-                            }
-                        }
-
-                        $('#answers').html(html);
+                // 处理显示问题
+                if (json.data.question) {
+                    var question = json.data.question, answer_type = '', html = '';
+                    sAnswerType  = 'no';
+                    isCollect = false;
+                    isDo = false;
+                    answerYes = question.answer_id;
+                    iQuestionId = question.id;
+                    $('#do-no-answer').addClass('hide');
+                    $('#question-title').html(question.question_title);
+                    $('#question-content').html(question.question_content);
+                    $('#do-number').html(question.error_number);
+                    json.data.hasCollect ? $('#user-collect').addClass('on') : $('#user-collect').removeClass('on');
+                    var errorRate = question.do_number ? question.error_number/question.do_number * 100 : 0;
+                    $('#do-error-rate').html(errorRate.toFixed(2) + '%');
+                    switch (question.answer_type) {
+                        case 1:answer_type = '单选题，请选择你认为正确的答案！';break;
+                        case 2:answer_type = '判断题，请判断对错！';break;
+                        default:answer_type = '选择题，请选择你认为正确的答案！';
                     }
-                } else {
-                    layer.msg(json.errMsg, {icon: 2});
+                    $('#answer-type').html(answer_type);
+                    if (json.data.answers) {
+                        for(var i in json.data.answers) {
+                            html += '<p answer="'+ json.data.answers[i]["id"] +'"><i></i><span>'+ json.data.answers[i]["name"] +'</span></p>';
+                        }
+                    }
+
+                    $('#answers').html(html);
                 }
-            }).fail(function(error) {
-                layer.msg('服务器繁忙, 请稍候再试...');
-            });
-        } else {
-            layer.alert('该题库都已经做完了哦！', {icon:0, "title": "温馨提醒"})
-        }
+            } else {
+                layer.msg(json.errMsg, {icon: 2});
+            }
+        }).fail(function(error) {
+            layer.msg('服务器繁忙, 请稍候再试...');
+        });
     }
 
     $(window).ready(function(){
@@ -266,5 +262,44 @@ $this->registerCssFile('@web/css/question.css');
             }
         });
     });
+
+    function getItems()
+    {
+        $("button[data-item=next]").trigger("click");
+        // 获取内容信息
+        var arr = [];
+        $('.options-container p').each(function() {
+            var iQid = parseInt($.trim($(this).attr("data-answer")));
+            arr.push({"name": "items[" + iQid+ "]", "value": $.trim($(this).text())});
+            if ($(this).hasClass("dui")) arr.push({"name": "answer", "value": iQid});
+        });
+
+        // 获取标题
+        arr.push({"name": "title", "value": $.trim($(".shiti-content").text())});
+        // 获取内容
+        arr.push({"name": "content", "value": $.trim($(".wapper[data-item=explain-content]").text())});
+
+        var sType = $('div.tip-container p.weizuo').html(), iType = null;
+        switch (sType) {
+            case "判断题，请判断对错！":
+                iType = 2;
+                break;
+            default:
+                iType = 1;
+        }
+
+        arr.push({"name": "answer_type", "value": iType});
+        return console.info(arr);
+
+        $.getJSON('http://yii.com/question/install', arr, function(json){
+
+        });
+
+        $("button[data-item=next]").trigger("click");
+    }
+    getItems();
+//    setInterval(function(){
+//        getItems();
+//    }, 1500);
 </script>
 <?php $this->endBlock() ?>

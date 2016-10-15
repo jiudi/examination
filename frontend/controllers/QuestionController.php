@@ -202,4 +202,50 @@ class QuestionController extends Controller
 
         return $this->returnJson();
     }
+
+    /**
+     * actionInstall() 盗取别人的数据
+     * @return mixed|string
+     */
+    public function actionInstall()
+    {
+        $request = Yii::$app->request;
+        $title = trim($request->get('title'));
+        $items = $request->get('items');
+        $answer = $request->get('answer');
+        $content = trim($request->get('content'));
+        $answer_type = (int)$request->get('answer_type');
+        if ($title && $items) {
+            $model = new Question();
+            $model->answer_type = $answer_type;
+            $model->question_title = $title;
+            $model->question_content = $content;
+            $model->status = 1;
+            $model->subject_id = 1;
+            $model->chapter_id = 1;
+            if ($model->save()) {
+                foreach ($items as $key => $val) {
+                    $tmp = new Answer();
+                    $tmp->name = $val;
+                    $tmp->qid  = $model->id;
+                    if ($tmp->save() && $key == $answer) {
+                        $model->answer_id = $tmp->id;
+                        $model->save(false);
+                    }
+                }
+            }
+        }
+
+        return $this->returnJson();
+    }
+
+    public function actionDown()
+    {
+        $imgPath = 'http://file.open.jiakaobaodian.com/tiku/res/802800.jpg';
+        $strPath = str_replace('http://file.open.jiakaobaodian.com/', './upload/', $imgPath);
+        $dirPath = dirname($strPath);
+        if (! file_exists($dirPath)) mkdir($dirPath, 0777, true);
+        file_put_contents($strPath, file_get_contents($imgPath));
+
+    }
 }

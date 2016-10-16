@@ -21,6 +21,12 @@ span.favor-tag {
     text-indent: 5px;
 }
 
+.options-container p {
+    width:auto;
+    padding:0 30px 0 5px;
+    cursor: pointer;
+}
+
 .lianxi-container .xuan i {
     background: url(../images/bg.png) -300px -498px no-repeat;
 }

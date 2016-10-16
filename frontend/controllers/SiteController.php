@@ -2,6 +2,8 @@
 namespace frontend\controllers;
 
 use common\helpers\Helper;
+use common\models\Special;
+use common\models\Subject;
 use common\models\User;
 use Yii;
 use yii\base\InvalidParamException;
@@ -74,7 +76,15 @@ class SiteController extends \common\controllers\Controller
 
     public function actionIndex()
     {
-        return $this->render('index');
+        // 查询科目一
+        $subject = Subject::findOne(['name' => '科目一']);
+        if (!$subject) $subject = Subject::findOne(1);
+        // 查询难题
+        $special = Special::findOne(['name' => '难题']);
+        return $this->render('index', [
+            'subject' => $subject,
+            'special' => $special,
+        ]);
     }
 
     /**

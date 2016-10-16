@@ -74,7 +74,7 @@ AppAsset::register($this);
                         <li class="bd-line"></li>
                         <li class="fankui" data-item="feedback"><a href="/feedback" class="a-link">意见反馈</a></li>
                     </ul>
-                    <p>Copyright © 2012 北京木仓科技有限公司版权所有&nbsp;&nbsp;京ICP备11009001号-17</p>
+                    <p>Copyright © 2016 刘星工作室版权所有&nbsp;&nbsp;京ICP备11009001号-17</p>
                     <img class="a-wap a-dis icon" src="http://web.resource.mucang.cn/jiakaobaodian.web/jkbd/resources/images/public/gongan.png">
                 </div>
             </div>
@@ -88,7 +88,7 @@ AppAsset::register($this);
     </div>
     <div class="content-container">
         <form class="login-form form-horizontal user-form" id="login-form" action="<?=Url::toRoute(['site/login'])?>">
-            <input type="hidden" value="<?php echo Yii::$app->getRequest()->getCsrfToken(); ?>" name="_csrf" />
+            <input type="hidden" value="<?= Yii::$app->getRequest()->getCsrfToken() ?>" name="_csrf" />
             <div class="form-group">
                 <input name="username" class="i-username form-control" required="true" email="true" rangelength="[2, 100]" placeholder="请输入账号邮箱" type="text" />
             </div>
@@ -111,7 +111,7 @@ AppAsset::register($this);
     </div>
     <div class="content-container">
         <form class="register-form form-horizontal user-form" id="register-form" action="<?=Url::toRoute(['site/register'])?>">
-            <input type="hidden" value="<?php echo Yii::$app->getRequest()->getCsrfToken(); ?>" name="_csrf" />
+            <input type="hidden" value="<?= Yii::$app->getRequest()->getCsrfToken() ?>" name="_csrf" />
             <div class="form-group">
                 <input name="username" class="form-control" required="true" rangelength="[2, 100]" placeholder="请输入昵称" type="text">
             </div>

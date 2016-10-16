@@ -6,10 +6,7 @@ use \common\models\Question;
 $this->title = '顺序练习';
 $this->registerCssFile('@web/css/question.css');
 ?>
-<ol class="breadcrumb">
-    <li><a href="/">科目一</a></li>
-    <li class="active"><a class="mylink">顺序练习</a></li>
-</ol>
+<?=$this->render('_crumbs')?>
 <div class="jkbd-page-lianxi inner jkbd-width wid-auto cl lianxi-type-sequence">
     <div class="lianxi-container news-left">
         <div data-item="shiti-container" class="shiti-container " style="">
@@ -21,22 +18,32 @@ $this->registerCssFile('@web/css/question.css');
                     <span id="user-collect" class="btn btn-default pull-right user-login favor-tag <?=$hasCollect ? 'on' : ''?><?=Yii::$app->user->isGuest ? 'hide' : ''?>">收藏</span>
                 </div>
 
-                <?php if ($answer) : ?>
-                <div class="shiti-wapper clearfix">
-                    <div  class="options-container" id="answers">
-                        <?php foreach ($answer as $value) : ?>
-                        <p answer="<?=$value->id?>"><i></i><span><?=$value->name?></span></p>
-                        <?php endforeach; ?>
+                <div>
+                    <?php if ($answer) : ?>
+                        <div class="shiti-wapper  pull-left">
+                            <div  class="options-container" id="answers">
+                                <?php foreach ($answer as $value) : ?>
+                                    <p answer="<?=$value->id?>"><i></i><span><?=$value->name?></span></p>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                    <div id="show-img" class="pull-right <?=$question->question_img ? '' : 'hide'?>">
+                        <img src="<?=$question->question_img?>" width="300px"/>
+                        <p class="text-center">
+                            <a href="javascript:;" class="see-img">点击放大</a>
+                        </p>
                     </div>
                 </div>
-                <?php endif; ?>
+
             </div>
         </div>
         <div class="tip-container">
-            <p id="do-no-answer" class="dacuo hide">
+            <p id="do-no-answer" class="dacuo do-answer hide">
                 <label class="text-danger"> 回答错误！</label>
                 正确答案：<strong id="answer-yes" class="text-success">A</strong>
             </p>
+            <p id="do-yes-answer" class="dadui do-answer text-success hide"> <strong>回答正确</strong> </p>
             <p class="weizuo" id="answer-type">
                 <?php
                 switch ($question->answer_type) {
@@ -93,7 +100,7 @@ $this->registerCssFile('@web/css/question.css');
         iDoYesNum = 0,                           // 做对了多少题
         iDoNoNum = 0,                            // 做错了多少题目
 //        sType = '<?=$type?>//',                    // 类型
-//        sStyle = '<?=$style?>//',                  // 风格
+        sStyle = '<?=$style?>',                  // 风格
         sAnswerType = 'no',                      // 答案类型
         doIds = [];
 
@@ -122,8 +129,8 @@ $this->registerCssFile('@web/css/question.css');
             return layer.msg(errMsg, {icon:2})
         }
 
-        console.info(allIds);
-        console.info(doIds);
+//        console.info(allIds);
+//        console.info(doIds);
 
         $('#info').addClass('hide');
         var ol = layer.load();
@@ -147,7 +154,8 @@ $this->registerCssFile('@web/css/question.css');
                     isDo = false;
                     answerYes = question.answer_id;
                     iQuestionId = question.id;
-                    $('#do-no-answer').addClass('hide');
+                    $('#o-number').html(doIds.length + 1);
+                    $('.do-answer').addClass('hide');
                     $('#question-title').html(question.question_title);
                     $('#question-content').html(question.question_content);
                     $('#do-number').html(question.error_number);
@@ -158,6 +166,17 @@ $this->registerCssFile('@web/css/question.css');
                         case 1:answer_type = '单选题，请选择你认为正确的答案！';break;
                         case 2:answer_type = '判断题，请判断对错！';break;
                         default:answer_type = '选择题，请选择你认为正确的答案！';
+                    }
+
+                    // 详情处理
+                    $('#see-info').html('查看详情');
+                    $('#info').addClass('hide');
+
+                    // 判断是否有图片
+                    if (question.question_img) {
+                        $('#show-img').removeClass('hide').find('img').attr('src', question.question_img);
+                    } else {
+                        $('#show-img').addClass('hide');
                     }
                     $('#answer-type').html(answer_type);
                     if (json.data.answers) {
@@ -188,6 +207,7 @@ $this->registerCssFile('@web/css/question.css');
                 sAnswerType = 'yes';
                 iDoYesNum ++;
                 $('#do-yes').html(iDoYesNum);
+                $("#do-yes-answer").removeClass('hide');
             } else {
                 // 错误
                 $(this).addClass('xuan');
@@ -253,19 +273,37 @@ $this->registerCssFile('@web/css/question.css');
 
         // 查询详情
         $('#see-info').click(function(){
-            if ($("#info").hasClass('hide')) {
-                $(this).html('收起详情');
-                $('#info').removeClass('hide');
+            if (isDo) {
+                if ($("#info").hasClass('hide')) {
+                    $(this).html('收起详情');
+                    $('#info').removeClass('hide');
+                } else {
+                    $(this).html('查看详情');
+                    $('#info').addClass('hide');
+                }
             } else {
-                $(this).html('查看详情');
-                $('#info').addClass('hide');
+                layer.msg('需要先完成问题,才能查看哦！');
             }
         });
+
+        // 查看大图
+        $('a.see-img').click(function(){
+            var src = $(this).parent().prev('img').attr('src');
+            layer.open({
+                type: 1,
+                title: '查看大图',
+                area: ['auto', 'auto'],
+                shade: 0.3,
+                cancel: function(index){layer.close(index);},
+                content: '<img src="'+src+'" style="margin:20px" />',
+                btn: ['确定'],
+            });
+        })
     });
 
+    /**
     function getItems()
     {
-        $("button[data-item=next]").trigger("click");
         // 获取内容信息
         var arr = [];
         $('.options-container p').each(function() {
@@ -289,17 +327,19 @@ $this->registerCssFile('@web/css/question.css');
         }
 
         arr.push({"name": "answer_type", "value": iType});
-        return console.info(arr);
+
+        // 添加图片
+        arr.push({"name": "question_img", "value": $(".media-container img").attr("src")});
 
         $.getJSON('http://yii.com/question/install', arr, function(json){
-
+            alert('123');
         });
 
         $("button[data-item=next]").trigger("click");
     }
-    getItems();
 //    setInterval(function(){
 //        getItems();
 //    }, 1500);
+    */
 </script>
 <?php $this->endBlock() ?>

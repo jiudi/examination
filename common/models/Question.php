@@ -8,6 +8,7 @@ namespace common\models;
  * @property integer $id
  * @property string $question_title
  * @property string $question_content
+ * @property string $question_img
  * @property integer $answer_type
  * @property integer $status
  * @property integer $answer_id
@@ -94,7 +95,7 @@ class Question extends TimestampModel
     {
         return [
             [['question_title', 'answer_type', 'status'], 'required'],
-            [['question_title', 'question_content'], 'string'],
+            [['question_title', 'question_content', 'question_img'], 'string'],
             [['answer_type', 'status', 'answer_id', 'created_at', 'updated_at', 'subject_id', 'chapter_id', 'special_id', 'error_number', 'do_number'], 'integer'],
         ];
     }
@@ -108,6 +109,7 @@ class Question extends TimestampModel
             'id' => '题目ID',
             'question_title' => '题目问题',
             'question_content' => '题目说明',
+            'question_img' => '问题图片',
             'answer_type' => '答案类型(1 单选 2 多选 3 判断)',
             'status' => '状态(1 启用 0 停用)',
             'answer_id' => '正确答案ID',

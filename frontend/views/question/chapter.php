@@ -4,11 +4,15 @@ use yii\helpers\Url;
 
 $this->title = '章节选择';
 $this->registerCssFile('@web/css/chapter.css');
+$this->params['breadcrumbs'] = [
+    [
+        'label' => '科目一',
+        'url' => Url::toRoute(['/', 'subject' => 1])
+    ],
+    $this->title
+];
 ?>
-<ol class="breadcrumb">
-    <li><a href="/">科目一</a></li>
-    <li class="active">章节练习</li>
-</ol>
+<?=$this->render('_crumbs')?>
 <div class="lx-main jkbd-width wid-auto">
     <h1 class="lx-title text-center">小车科目一 章节练习</h1>
     <p class="text-center">按照法规章节逐步分类</p>

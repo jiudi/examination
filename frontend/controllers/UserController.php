@@ -17,6 +17,11 @@ use yii\helpers\Json;
  */
 class UserController extends \common\controllers\UserController
 {
+    public function actionCollect()
+    {
+
+    }
+
     /**
      * actionCreateCollect() 添加用户收藏信息
      * @return array 返回json字符串

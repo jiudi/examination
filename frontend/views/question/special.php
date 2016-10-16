@@ -4,11 +4,17 @@ use yii\helpers\Url;
 
 $this->title = '章节选择';
 $this->registerCssFile('@web/css/chapter.css');
+$this->params['breadcrumbs'] = [
+    [
+        'label' => '科目一',
+        'url'   => '/',
+    ],
+    $this->title
+
+];
+
 ?>
-<ol class="breadcrumb">
-    <li><a href="/"> 科目一 </a></li>
-    <li class="active"> 专项练习 </li>
-</ol>
+<?=$this->render('_crumbs')?>
 <div class="lx-main jkbd-width wid-auto">
     <h1 class="lx-title text-center">小车科目一 专项练习</h1>
     <p class="text-center">按照专项类型分类</p>

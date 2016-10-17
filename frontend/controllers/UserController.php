@@ -21,6 +21,10 @@ use common\models\Answer;
  */
 class UserController extends \common\controllers\UserController
 {
+    /**
+     * actionCollect 用户收藏的问题
+     * @return string|\yii\web\Response
+     */
     public function actionCollect()
     {
         // 查询科目

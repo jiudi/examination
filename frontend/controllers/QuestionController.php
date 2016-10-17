@@ -74,9 +74,10 @@ class QuestionController extends Controller
                 // 查询问题答案
                 $answer = Answer::findAll(['qid' => $question->id]);
                 return $this->render('index', [
+                    'subject' => $subject,
                     'allTotal' => (int)$allTotal,
                     'total' => (int)$total,
-                    'hasCollect' => UserCollect::hasCollect($question->id),
+                    'hasCollect' => UserCollect::hasCollect($question->id, $subject->id),
                     'allIds' => Json::encode($ids),
                     'question' => $question,
                     'answer' => $answer,
@@ -215,7 +216,7 @@ class QuestionController extends Controller
             if ($question) {
                 $answers = Answer::findAll(['qid' => $question->id]);
                 $this->handleJson([
-                    'hasCollect' => UserCollect::hasCollect($question->id),
+                    'hasCollect' => UserCollect::hasCollect($question->id, $question->subject_id),
                     'question' => $question,
                     'answers' => $answers
                 ]);
@@ -358,9 +359,10 @@ class QuestionController extends Controller
                     // 查询问题答案
                     $answer = Answer::findAll(['qid' => $question->id]);
                     return $this->render('index', [
+                        'subject' => $subject,
                         'allTotal' => (int)$allTotal,
                         'total' => count($arrIds),
-                        'hasCollect' => UserCollect::hasCollect($question->id),
+                        'hasCollect' => UserCollect::hasCollect($question->id, $subject->id),
                         'allIds' => Json::encode($arrIds),
                         'question' => $question,
                         'answer' => $answer,

@@ -235,7 +235,8 @@ $this->registerCssFile('@web/css/question.css');
                     url: '<?=Url::toRoute(['user/create-collect'])?>',
                     data: {
                         qid: iQuestionId,
-                        type: hasCollect ? 'remove' : 'create'
+                        type: hasCollect ? 'remove' : 'create',
+                        subject: '<?=$subject->id?>',
                     },
                     type: 'POST',
                     dataType: 'json'

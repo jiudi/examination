@@ -57,9 +57,10 @@ class UserController extends \common\controllers\UserController
                     // 查询问题答案
                     $answer = Answer::findAll(['qid' => $question->id]);
                     return $this->render('/question/index', [
+                        'subject' => $subject,
                         'allTotal' => (int)$allTotal,
                         'total' => count($collect->qids),
-                        'hasCollect' => UserCollect::hasCollect($question->id),
+                        'hasCollect' => UserCollect::hasCollect($question->id, $subject->id),
                         'allIds' => Json::encode($collect->qids),
                         'question' => $question,
                         'answer' => $answer,
@@ -79,14 +80,20 @@ class UserController extends \common\controllers\UserController
      */
     public function actionCreateCollect()
     {
-        $intQid = (int)Yii::$app->request->post('qid');
-        $strType = Yii::$app->request->post('type');
+        $request = Yii::$app->request;
+        $intQid = (int)$request->post('qid');
+        $strType = $request->post('type');
+        $intSubject = (int)$request->post('subject', 1);
         if ($intQid && $strType && in_array($strType, ['create', 'remove'])) {
             // 查询对象
-            $model = UserCollect::findOne(['user_id' => Yii::$app->user->id]);
+            $model = UserCollect::findOne([
+                'user_id' => Yii::$app->user->id,
+                'subject_id' => $intSubject
+            ]);
             if ( ! $model) {
                 $model = new UserCollect();
                 $model->user_id = Yii::$app->user->id;
+                $model->subject_id = $intSubject;
                 $model->qids = [];
             }
 
@@ -95,16 +102,17 @@ class UserController extends \common\controllers\UserController
             if ($strType == 'create') {
                 // 获取之前的收藏信息
                 $this->arrJson['errCode'] = 222;
-                if (! in_array($intQid, $model->qids) || empty($model->qids)) {
+                if (! in_array($intQid, $array) || empty($array)) {
                     array_push($array, $intQid);
                     $array = array_unique($array);
                     $isTrue = true;
                 }
             } else {
                 $this->arrJson['errCode'] = 224;
-                if (in_array($intQid, $model->qids)) {
+                if (in_array($intQid, $array)) {
                     $intKey = array_search($intQid, $array);
                     if ($intKey !== false) unset($array[$intKey]);
+                    sort($array);
                     $isTrue = true;
                 }
             }

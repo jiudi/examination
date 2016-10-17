@@ -129,7 +129,8 @@ $array = range('A', 'z');
         oFirstQuestion = <?=Json::encode($question->toArray())?>,
         aAnswersSelect = <?=Json::encode($array)?>,
         oFirstAnswers = <?=Json::encode($answers)?>,
-        iKey = 0;
+        iKey = 0,
+        first = true;
 
         // 第一个问题已经处理
         oFirstQuestion["answers"] = oFirstAnswers;
@@ -152,7 +153,6 @@ $array = range('A', 'z');
 
     // 开始设置时间
     function startInter() {
-        var first = true;
         return setInterval(function(){
             if (first) {
                 $('#minute').html('44');
@@ -295,6 +295,9 @@ $array = range('A', 'z');
             btn: ['重新开始', '取消'],
             yes: function(index, ly) {
                 window.location.reload();
+            },
+            btn2: function(index, ly) {
+                startInter();
             }
         });
     }

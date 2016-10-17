@@ -84,6 +84,8 @@ class UserController extends \common\controllers\UserController
         $intQid = (int)$request->post('qid');
         $strType = $request->post('type');
         $intSubject = (int)$request->post('subject', 1);
+
+        // 判断数据的有效性
         if ($intQid && $strType && in_array($strType, ['create', 'remove'])) {
             // 查询对象
             $model = UserCollect::findOne([
@@ -108,6 +110,7 @@ class UserController extends \common\controllers\UserController
                     $isTrue = true;
                 }
             } else {
+                // 删除收藏
                 $this->arrJson['errCode'] = 224;
                 if (in_array($intQid, $array)) {
                     $intKey = array_search($intQid, $array);

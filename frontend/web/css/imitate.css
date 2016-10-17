@@ -26,6 +26,25 @@ div fieldset.kaochang-main {
 p a.see-img {
     margin: 5px;
     cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+p#question-desc span {
+    padding: 0 5px;
+}
+
+p#question-desc span strong {
+    color: #1dacf9;
+    font-size: 18px;
+}
+
+p#question-desc span.dui {
+    color: #1dacf9;
+}
+
+p#question-desc span.cuo {
+    color: red;
 }
 
 .info-up {
@@ -56,9 +75,17 @@ p a.see-img {
 }
 
 .infoup-center .timu-container .timu-content {
-    height: 270px;
+    min-height: 270px;
     overflow: auto;
     text-align: left;
+}
+
+.kaosheng-info p.text-right {
+    margin-bottom: 15px;
+}
+
+.options-container button {
+    font-weight: bold;
 }
 
 .kaosheng-info p {
@@ -80,7 +107,7 @@ p a.see-img {
 
 .infoup-center .timu-container {
     padding: 15px 20px;
-    height: 320px;
+    min-height: 320px;
     overflow: hidden;
     color: #4c4c4c;
 }
@@ -91,7 +118,7 @@ div.info-middle fieldset {
 }
 
 div.fun-btns {
-    margin: 25px 0 0 0;
+    margin: 30px 0 0 0;
 }
 
 div.info-down fieldset {
@@ -132,4 +159,45 @@ div.info-down fieldset {
     background: #fee7e7;
     border-color: #f25e5e;
     color: #f25e5e;
+}
+
+.info-middle .time-info span {
+    font-weight: bold;
+    font-size: 32px;
+}
+div.info-middle fieldset.time-info {
+    padding: 0;
+}
+
+.infoup-center .timu-container .timu-content p {
+    line-height: 1.65;
+    margin: 8px 0;
+    font-size: 18px;
+    padding-left: 30px;
+}
+
+.info-middle .tip-container .tip-content {
+    padding-top: 4px;
+    text-indent: 30px;
+    text-align: left;
+    font-size: 14px;
+}
+
+.infoup-center .timu-container .timu-content .timu-p {
+    padding-left: 0;
+    margin: 0;
+    font-size: 20px;
+    font-weight: bold;
+    padding-bottom: 12px;
+}
+
+div.performance {
+    margin:15px;
+    padding: 10px;
+}
+div.performance strong.yes {
+    color: #1dacf9;
+}
+div.performance strong.no, div.performance strong.fraction {
+    color: red;
 }

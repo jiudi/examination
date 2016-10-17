@@ -465,7 +465,8 @@ var MeTable = (function($) {
 	// 删除数据
 	MeTable.prototype.delete = function(row, isDetail) {
 		var self = this;			// 对象
-		this.actionType ="delete";	// 操作类型
+		this.actionType = "delete";	// 操作类型
+		if (isDetail) this.bDetail = true;
 
 		// 询问框
 		layer.confirm('您确定需要删除这条数据吗?', {
@@ -484,13 +485,10 @@ var MeTable = (function($) {
 	MeTable.prototype.deleteAll = function() {
         var data = [], self = this;
         this.actionType = "deleteAll";
-
         // 数据添加
         $(this.options.sTable + " tbody input:checkbox:checked").each(function(){data.push($(this).val());});
-
         // 数据为空提醒
         if (data.length < 1)  return bootbox.alert({title:"温馨提醒",message:"您没有选择需要删除的数据 ! "});
-
         // 确认操作提醒
         bootbox.dialog({
             title:"温馨提醒",
@@ -529,11 +527,11 @@ var MeTable = (function($) {
 
 			// 新增和修改验证数据、数据的处理
 			if (in_array(this.actionType, ["insert", "update"])) {
-				// if ($(sFormId).validate(validatorError).form()) {
+				if ($(sFormId).validate(validatorError).form()) {
 					data = $(sFormId).serialize();
-				// } else {
-					//return false;
-				// }
+				} else {
+					return false;
+				}
 			}
 
 			// 数据验证

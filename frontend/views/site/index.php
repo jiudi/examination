@@ -45,17 +45,17 @@ $this->registerCssFile('@web/css/index.css');
             </a>
         </div>
         <div class="col-md-3">
-            <a class="fl lianxi2-a li1 lianxi5 col-md-3"  href="<?=Url::toRoute(['user/collect'])?>">
+            <a class="fl lianxi2-a li1 lianxi5 col-md-3 <?=Yii::$app->user->isGuest ? "is-login login" : "" ?>"  href="<?=Url::toRoute(['user/collect', 'subject' => $subject->id])?>">
                 <span class="name">我的收藏</span>
             </a>
         </div>
         <div class="col-md-3">
-            <a class="fl lianxi2-a li2 lianxi4 col-md-3"  href="<?=Url::toRoute(['question/warning'])?>">
+            <a class="fl lianxi2-a li2 lianxi4 col-md-3"  href="<?=Url::toRoute(['question/warning', 'subject' => $subject->id])?>">
                 <span class="name">我的错题</span>
             </a>
         </div>
         <div class="col-md-3">
-            <a class="fl lianxi2-a li3 lianxiexam col-md-3"  href="<?=Url::toRoute(['question/imitate'])?>">
+            <a class="fl lianxi2-a li3 lianxiexam col-md-3"  href="<?=Url::toRoute(['question/imitate', 'subject' => $subject->id])?>">
                 <span class="name">全真模拟</span>
             </a>
         </div>

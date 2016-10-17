@@ -24,6 +24,7 @@ class AppAsset extends AssetBundle
         'js/jquery.validate.min.js',
         'js/validate.message.js',
         'js/layer/layer.js',
+        'js/common.js'
     ];
 
     public $depends = [

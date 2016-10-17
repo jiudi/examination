@@ -81,6 +81,39 @@ class Question extends TimestampModel
     }
 
     /**
+     * getAnswerTypeDesc() 获取问题类型说明信息
+     * @param  null $intType
+     * @return array|mixed
+     */
+    public static function getAnswerTypeDesc($intType = null)
+    {
+        $array = [
+            self::ANSWER_TYPE_ONE => '单选题,请选择你认为正确的答案!',
+            self::ANSWER_TYPE_JUDGE => '判断题,请判断对错!',
+            self::ANSWER_TYPE_MULTI => '选择题,请选择你认为正确的答案!'
+        ];
+
+        if ($intType !== null && isset($array[$intType])) $array = $array[$intType];
+        return $array;
+    }
+
+    /**
+     * getAllIds() 获取题目ID
+     * @param  array $where 查询条件
+     * @param  null $limit  查询数据条数
+     * @return array
+     */
+    public static function getAllIds($where, $params = [])
+    {
+        $query = self::find()->select('id')->where($where)->indexBy('id');
+        // 判断查询数据条数
+        if (isset($params['offset'])) $query = $query->offset($params['offset']);
+        if (isset($params['limit']) && ! empty($params['limit'])) $query = $query->limit($params['limit']);
+        $array = $query->all();
+        return empty($array) ? [] : array_keys($array);
+    }
+
+    /**
      * @inheritdoc
      */
     public static function tableName()

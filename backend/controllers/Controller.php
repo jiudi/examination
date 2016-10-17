@@ -23,6 +23,7 @@ class Controller extends \common\controllers\Controller
 {
     public    $admins = null; // 管理员信息
     protected $sort   = 'id'; // 默认排序字段
+    protected $scenario = []; // 数据新增修改的应用场景设置
 
     // 权限验证
     public function beforeAction($action)
@@ -179,13 +180,14 @@ class Controller extends \common\controllers\Controller
         $data = Yii::$app->request->post();
         if ($data) {
             $model  = $this->getModel();
+            // 设置应用场景
+            if (isset($this->scenario['create'])) $model->scenario = $this->scenario['create'];
             $isTrue = $model->load(['params' => $data], 'params');
             if ($isTrue) {
                 $isTrue = $model->save();
                 $this->arrJson['errMsg'] = $model->getErrorString();
                 if ($isTrue) $this->handleJson($model);
             }
-
         }
 
         // 返回数据
@@ -201,13 +203,15 @@ class Controller extends \common\controllers\Controller
         // 接收参数判断
         $data = Yii::$app->request->post();
         if ($data) {
-            // 接收参数
+            // 接收参数查询
             $model = $this->findModel($data);
             if ($model) {
-                // 新增数据
+                // 设置应用场景
+                if (isset($this->scenario['update'])) $model->scenario = $this->scenario['update'];
                 $this->arrJson['errCode'] = 205;
                 $isTrue = $model->load(['params' => $data], 'params');
                 if ($isTrue) {
+                    // 执行修改
                     $isTrue = $model->save();
                     $this->arrJson['errMsg'] = $model->getErrorString();
                     if ($isTrue) $this->handleJson($model);

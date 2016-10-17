@@ -25,16 +25,11 @@ class QuestionController extends Controller
     {
         // 接收参数
         $request = Yii::$app->request;
-        $intSid  = (int)$request->get('subject');      // 科目ID
-        $intSid  = $intSid > 0 ? $intSid : 1;
-        $sType   = $request->get('type', 'all');       // 类型 chapter and special and null
-        $intCid  = (int)$request->get('cid');          // 对应类型子类ID
-        $sStyle  = $request->get('style', 'sequence'); // 答题类型 sequence 顺序 and random 随机
-        $where = [
-            'status' => Question::STATUS_KEY,
-            'subject_id' => 1
-        ];
-
+        $intSid = (int)$request->get('subject');      // 科目ID
+        $intSid = $intSid > 0 ? $intSid : 1;
+        $sType = $request->get('type', 'all');       // 类型 chapter and special and null
+        $intCid = (int)$request->get('cid');          // 对应类型子类ID
+        $sStyle = $request->get('style', 'sequence'); // 答题类型 sequence 顺序 and random 随机
         $errMsg = '科目信息不存在';
 
         // 查询科目
@@ -44,6 +39,11 @@ class QuestionController extends Controller
                 'label' => $subject->name,
                 'url' => Url::toRoute(['/', 'subject' => $subject->id]),
             ]];
+
+            $where = [
+                'status' => Question::STATUS_KEY,
+                'subject_id' => $subject->id
+            ];
 
             // 全部题目
             $allTotal = Question::find()->where($where)->count(); // 全部题库
@@ -67,10 +67,8 @@ class QuestionController extends Controller
 
             // 开始查询
             $total    = Question::find()->where($where)->count();
-            $all = Question::find()->select('id')->where($where)->indexBy('id')->all();
-            $ids = array_keys($all);
+            $ids = Question::getAllIds($where);
             $question = Question::findOne($where); // 查询一条数据
-
             $errMsg = '问题不存在';
             if ($question) {
                 // 查询问题答案
@@ -173,30 +171,30 @@ class QuestionController extends Controller
             $question = Question::findOne($intQid);
             $this->arrJson['errCode'] = 220;
             if ($question) {
-                $cookie = $request->cookies;
+                if ($strType == 'no') {
+                    $cookie = $request->cookies;
+                    $values = $cookie->get($strType);
+                    if ($values == null) {
+                        $values = [$intQid];
+                    } else {
+                        $values = Json::decode($values->value, true);
+                        array_push($values, $intQid);
+                        $values = array_unique($values);
+                    }
 
-                $values = $cookie->get($strType);
-                if ($values == null) {
-                    $values = [$intQid];
-                } else {
-                    $values = Json::decode($values, true);
-                    array_push($values, $intQid);
-                    $values = array_unique($values);
+                    // 添加COOKIE
+                    Yii::$app->response->cookies->add(new \yii\web\Cookie([
+                        'name' => $strType,
+                        'value' => Json::encode($values),
+                        'expire' => time() + 86400,
+                    ]));
                 }
-
-                // 添加COOKIE
-                Yii::$app->response->cookies->add(new \yii\web\Cookie([
-                    'name' => $strType,
-                    'value' => Json::encode($values),
-                    'expire' => time() + 86400,
-                ]));
 
                 // 修改记录信息
                 if ($strType == 'no') $question->error_number ++;
                 $question->do_number ++;
                 $question->save();
-
-                $this->handleJson($values);
+                $this->handleJson($question);
 
             }
         }
@@ -290,8 +288,89 @@ class QuestionController extends Controller
         return $mixReturn;
     }
 
+    /**
+     * actionImitate() 全真模拟考试
+     * @return string
+     * @throws HttpException
+     */
     public function actionImitate()
     {
-        return $this->render('imitate');
+        // 查询科目信息
+        $subject = Subject::findOne(Yii::$app->request->get('subject', 1));
+        if ($subject) {
+            $where = ['subject_id' => $subject->id];
+            $total = Question::find()->where($where)->count();
+            $params = ['limit' => 300];
+            $params['offset'] = mt_rand(0, max(0, $total- $params['limit']));
+            $ids = Question::getAllIds($where, $params);
+            if ($ids) {
+                shuffle($ids);
+                $ids = array_slice($ids, 0, $params['limit'] / 3);
+                $question = Question::findOne($ids[0]);
+                if ($question) {
+                    $answers = Answer::findAll(['qid' => $question->id]);
+                    return $this->render('imitate', [
+                        'question' => $question,
+                        'answers' => $answers,
+                        'allIds' => $ids
+                    ]);
+                }
+            }
+        }
+
+        throw  new HttpException(404, '数据不存在');
+    }
+
+    /**
+     * actionWarning() 我的错题
+     * @return string|\yii\web\Response
+     */
+    public function actionWarning()
+    {
+        // 查询科目
+        $subject = Subject::findOne(Yii::$app->request->get('subject', 1));
+        if ($subject) {
+            $cookie = Yii::$app->request->cookies;
+            $objIds = $cookie->get('no');
+            if ($objIds && $objIds->value) {
+                $arrIds = Json::decode($objIds->value, true);
+                // 全部题目
+                $allTotal = Question::find()->where([
+                    'status' => Question::STATUS_KEY,
+                    'subject_id' => $subject->id
+                ])->count(); // 全部题库
+
+                Yii::$app->view->params['breadcrumbs'] = [
+                    [
+                        'label' => $subject->name,
+                        'url' => Url::toRoute(['/', 'subject' => $subject->id]),
+                    ],
+                    [
+                        'label' => '我的错题',
+                        'url' => Url::toRoute(['question/warning', 'subject' => $subject->id])
+                    ],
+                    '顺序练习',
+                ];
+
+                // 开始查询
+                $question = Question::findOne($arrIds[0]); // 查询一条数据
+                if ($question) {
+                    // 查询问题答案
+                    $answer = Answer::findAll(['qid' => $question->id]);
+                    return $this->render('index', [
+                        'allTotal' => (int)$allTotal,
+                        'total' => count($arrIds),
+                        'hasCollect' => UserCollect::hasCollect($question->id),
+                        'allIds' => Json::encode($arrIds),
+                        'question' => $question,
+                        'answer' => $answer,
+                        'style' => 'sequence',
+                    ]);
+                }
+            }
+        }
+
+        // 没有数据直接返回
+        return $this->redirect(['/', 'subject' => 1]);
     }
 }

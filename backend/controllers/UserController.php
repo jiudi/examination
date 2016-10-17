@@ -17,6 +17,11 @@ use backend\models\User;
  */
 class UserController extends Controller
 {
+    protected $scenario = [
+        'create' => 'user-create',
+        'update' => 'user-update'
+    ];
+
     /**
      * where() 查询处理
      * @param  array $params

@@ -124,17 +124,6 @@ class User extends \common\models\User
     }
 
     /**
-     * beforeValidate() 验证之前的处理
-     * @return bool
-     */
-    public function beforeValidate()
-    {
-        // 存在请求数据
-        $this->scenario = $this->id == null ? 'user-create' : 'user-update';
-        return parent::beforeValidate();
-    }
-
-    /**
      * beforeSave() 新增之前的处理
      * @param  bool $insert 是否是新增数据
      * @return bool 处理是否成功

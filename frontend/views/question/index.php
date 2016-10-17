@@ -45,18 +45,7 @@ $this->registerCssFile('@web/css/question.css');
             </p>
             <p id="do-yes-answer" class="dadui do-answer text-success hide"> <strong>回答正确</strong> </p>
             <p class="weizuo" id="answer-type">
-                <?php
-                switch ($question->answer_type) {
-                    case Question::ANSWER_TYPE_ONE:
-                        echo '单选题，请选择你认为正确的答案！';
-                        break;
-                    case Question::ANSWER_TYPE_JUDGE:
-                        echo '判断题，请判断对错！';
-                        break;
-                    default:
-                        echo '选择题，请选择你认为正确的答案！';
-                }
-                ?>
+                <?= Question::getAnswerTypeDesc($question->answer_type) ?>
             </p>
             <p>
                 错误率 <strong id="do-error-rate"><?=$question->do_number != 0 ? (round($question->error_number / $question->do_number * 100, 2 ) . '%') : '0%'?></strong> 　
@@ -99,7 +88,6 @@ $this->registerCssFile('@web/css/question.css');
         isDo = false,                            // 这题是否已经做了
         iDoYesNum = 0,                           // 做对了多少题
         iDoNoNum = 0,                            // 做错了多少题目
-//        sType = '<?=$type?>//',                    // 类型
         sStyle = '<?=$style?>',                  // 风格
         sAnswerType = 'no',                      // 答案类型
         doIds = [];
@@ -110,16 +98,16 @@ $this->registerCssFile('@web/css/question.css');
             case 'next':
                 if (allIds[0]) {
                     doIds.push(allIds.shift());
+                } else {
+                    errMsg = '没有下一题了';
                 }
-
-                if (! allIds[0]) errMsg = '没有下一题了';
                 break;
             case 'prev':
                 if (doIds.length > 0) {
                     allIds.unshift(doIds.pop());
+                } else {
+                    errMsg = '没有上一题了';
                 }
-
-                if (doIds.length <= 0) errMsg = '没有上一题了';
                 break;
             default:
                 errMsg = '你的选择错误';
@@ -148,7 +136,7 @@ $this->registerCssFile('@web/css/question.css');
 
                 // 处理显示问题
                 if (json.data.question) {
-                    var question = json.data.question, answer_type = '', html = '';
+                    var question = json.data.question, html = '';
                     sAnswerType  = 'no';
                     isCollect = false;
                     isDo = false;
@@ -162,11 +150,6 @@ $this->registerCssFile('@web/css/question.css');
                     json.data.hasCollect ? $('#user-collect').addClass('on') : $('#user-collect').removeClass('on');
                     var errorRate = question.do_number ? question.error_number/question.do_number * 100 : 0;
                     $('#do-error-rate').html(errorRate.toFixed(2) + '%');
-                    switch (question.answer_type) {
-                        case 1:answer_type = '单选题，请选择你认为正确的答案！';break;
-                        case 2:answer_type = '判断题，请判断对错！';break;
-                        default:answer_type = '选择题，请选择你认为正确的答案！';
-                    }
 
                     // 详情处理
                     $('#see-info').html('查看详情');
@@ -178,7 +161,7 @@ $this->registerCssFile('@web/css/question.css');
                     } else {
                         $('#show-img').addClass('hide');
                     }
-                    $('#answer-type').html(answer_type);
+                    $('#answer-type').html(getAnswerTypeDesc(question.answer_type));
                     if (json.data.answers) {
                         for(var i in json.data.answers) {
                             html += '<p answer="'+ json.data.answers[i]["id"] +'"><i></i><span>'+ json.data.answers[i]["name"] +'</span></p>';
@@ -286,19 +269,8 @@ $this->registerCssFile('@web/css/question.css');
             }
         });
 
-        // 查看大图
-        $('a.see-img').click(function(){
-            var src = $(this).parent().prev('img').attr('src');
-            layer.open({
-                type: 1,
-                title: '查看大图',
-                area: ['auto', 'auto'],
-                shade: 0.3,
-                cancel: function(index){layer.close(index);},
-                content: '<img src="'+src+'" style="margin:20px" />',
-                btn: ['确定'],
-            });
-        })
+        // 查看图片
+        imageBoost('a.see-img');
     });
 
     /**

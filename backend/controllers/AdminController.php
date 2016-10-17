@@ -13,6 +13,11 @@ use Yii;
  */
 class AdminController extends Controller
 {
+    public $scenario = [
+        'create' => 'admin-create',
+        'update' => 'admin-update'
+    ];
+
     /**
      * where() 搜索配置
      * @param  array $params 查询参数
@@ -137,9 +142,6 @@ class AdminController extends Controller
                 $strFilePath = $strTmpPath;
             }
         }
-
-
-
 
         return true;
     }

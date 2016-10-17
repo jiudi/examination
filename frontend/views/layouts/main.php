@@ -45,8 +45,8 @@ AppAsset::register($this);
                     </a>
                     <ul class="dropdown-menu">
                         <li class="dropdown-header"> 我的信息 </li>
-                        <li><a href="/resource/ace"> 我的错题 </a></li>
-                        <li><a href="/resource/Simpli"> 我的收藏 </a></li>
+                        <li><a href="<?=Url::toRoute(['question/warning', 'subject' => 1])?>"> 我的错题 </a></li>
+                        <li><a href="<?=Url::toRoute(['user/collect', 'subject' => 1])?>"> 我的收藏 </a></li>
                         <li role="separator" class="divider"></li>
                         <li class="dropdown-header">其他操作</li>
                         <li><a href="<?=Url::toRoute(['site/logout'])?>" class=""> 退出登录 </a></li>
@@ -154,99 +154,7 @@ AppAsset::register($this);
         </form>
     </div>
 </div>
-
 <?php $this->endBody() ?>
-<script type="text/javascript">
-    // 设置高度
-    var iWHeight = $(window).height() - 187, iCHeight = $('#content').height();
-    if (iWHeight > iCHeight) $('#content').css('min-height', iWHeight + 'px');
-
-    var loginShow, registerShow, oLoading;
-
-    // 弹出窗口
-    function showDialog(selector, sTitle, params) {
-        if ( ! params) params = {};
-        params = $.extend({
-            modal:      true,   // 是否模块化
-            title:      sTitle, // 标题
-            width:      400,    // 宽度
-            resizable:  false   // 是否允许改变大小
-        }, params);
-
-        $(selector).find('label.error').remove();
-        return $(selector).removeClass('hide').dialog(params);
-    }
-
-    // 弹出登录窗口
-    function showLogin()
-    {
-        if (registerShow) registerShow.dialog('close');
-        loginShow = showDialog('#login-dialog', '考试系统登录');
-    }
-
-    // 弹出注册窗口
-    function showRegister()
-    {
-        if (loginShow) loginShow.dialog('close');
-        registerShow = showDialog('#register-dialog', '考试系统注册');
-    }
-
-    // 用户登录操作
-    function userLogin(user) {
-        // 关闭弹窗
-        if (loginShow) loginShow.dialog('close');
-        if (registerShow) registerShow.dialog('close');
-
-        // 隐藏没有登录显示登录信息
-        $('.no-login').hide();
-        $('.user-login').removeClass('hide').show();
-        $('#username').html(user.username ? user.username : (user.email ? user.emial : ''));
-        if(user.face) $('#user-face').src(user.face);
-    }
-
-    // 弹出登录窗口
-    $('.login').click(function(){
-        showLogin();
-    });
-
-    // 弹出注册窗口
-    $('.register').click(function(){
-        showRegister();
-    });
-
-    // 用户登录
-    $('.user-form').submit(function(e){
-        e.preventDefault();
-        // 验证数据
-        if ($(this).validate().form()) {
-            oLoading = layer.load();
-            // ajax请求
-            $.ajax({
-                url:      $(this).attr('action'),
-                type:     'POST',
-                data:     $(this).serialize(),
-                dateType: 'json'
-            }).always(function(){
-                layer.close(oLoading);
-            }).done(function(json){
-                if (json.errCode == 0) {
-                    layer.msg(json.errMsg, {icon:6});
-                    userLogin(json.data);
-                } else {
-                    if ($('.user-form').hasClass('register-form')) {
-                        $('#captchaimg').trigger('click');
-                    }
-                    layer.msg(json.errMsg, {icon:5});
-                }
-            }).fail(function(error){
-                console.info(error);
-                layer.msg('服务器繁忙请稍候再试...');
-            });
-        }
-
-        return false;
-    })
-</script>
 <?=$this->blocks['javascript']?>
 </body>
 </html>

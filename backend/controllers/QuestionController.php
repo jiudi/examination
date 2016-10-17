@@ -68,4 +68,17 @@ class QuestionController extends Controller
     {
         return new Question();
     }
+
+    /**
+     * afterUpload() 上传文件之后的处理
+     * @param object $objFile
+     * @param string $strFilePath
+     * @param string $strField
+     * @return bool
+     */
+    public function afterUpload($objFile, &$strFilePath, $strField)
+    {
+        Helper::copy($strFilePath);
+        return true;
+    }
 }

@@ -52,6 +52,7 @@ $this->params['breadcrumbs'][] = $this->title;
     }
 
     var aSubject = <?=$subject?>,
+        sUpload = '<?=Url::toRoute(['question/upload', 'sField' => 'question_img'])?>',
         aSpecial = <?=$special?>,
         aChapter = <?=$chapter?>,
         aStatus  = <?=$status?>,
@@ -63,8 +64,9 @@ $this->params['breadcrumbs'][] = $this->title;
 			{"title": "题目ID", "data": "id", "sName": "id", "class":"details-control", "edit": {"type": "hidden", "options": {}}, "bSortable": false, "createdCell":function(td, data, rowArr, row, col){
                 $(td).html(data + '<b class="arrow fa fa-angle-down pull-right"></b>');
             }},
-			{"title": "题目问题", "data": "question_title", "sName": "question_title", "edit": {"type": "text", "options": {"required":true}}, "bSortable": false},
-			{"title": "题目说明", "data": "question_content", "sName": "question_content", "edit": {"type": "text", "options": {}}, "bSortable": false}, 
+			{"title": "题目问题", "data": "question_title", "sName": "question_title", "edit": {"type": "textarea", "options": {"required":true}}, "bSortable": false},
+			{"title": "题目说明", "data": "question_content", "sName": "question_content", "edit": {"type": "textarea", "options": {}}, "bSortable": false},
+			{"title": "题目图片", "data": "question_img", "sName": "question_img", "edit": {"type": "file", options:{"id":"myfile", "type":"ace_input"}}, "bSortable": false},
 			{"title": "答案类型", "data": "answer_type", "sName": "answer_type", "value": aType, "edit": {"type": "select", "options": {"required":true,"number":true}}, "bSortable": false},
 			{"title": "状态", "data": "status", "sName": "status", "value": aStatus, "edit": {"type": "radio", "default": 1, "options": {"required":true,"number":true}}, "bSortable": false, "createdCell": function(td, data) {
 			    $(td).html(showSpan(aStatus, aColor, data));
@@ -79,11 +81,11 @@ $this->params['breadcrumbs'][] = $this->title;
 			{"title": "所属专项分类", "data": "special_id", "sName": "special_id", "value": aSpecial, "edit": {"type": "select", "options": {"required":true,"number":true}}, "bSortable": false},
 			{"title": "错误人数", "data": "error_number", "sName": "error_number"},
             {"data": null, "title":"操作", "bSortable":false, "width":"180px", "createdCell":setOperate}
-        ]
+        ],
 
         // 设置隐藏和排序信息
         // "order":[[0, "desc"]],
-        // "columnDefs":[{"targets":[2,3], "visible":false}],
+         "columnDefs":[{"targets":[4], "visible":false}]
     }, {
             "sBaseUrl": "/answer/",
             "oTableOptions": {
@@ -120,9 +122,11 @@ $this->params['breadcrumbs'][] = $this->title;
             switch (this.actionType) {
                 case 'insert': // 新增
                     $('#editForm').find('select[name=answer_id]').html('<option value="0">请选择</option>');
+                    $("#ace_myfile").ace_file_input("reset_input");
                     break;
                 case 'update': // 编辑
                     if (aData) {
+                        if (aData.question_img) $("#ace_myfile").ace_file_input("show_file_list", [aData.question_img]);
                         // 获取答案选项
                         $.ajax({
                             "url": '<?=Url::toRoute(['question/child'])?>',
@@ -133,9 +137,10 @@ $this->params['breadcrumbs'][] = $this->title;
                             if (json.errCode == 0 && json.data.length >= 1) {
                                 var html = '<option value="0">请选择</option>';
                                 for (var i in json.data) {
-                                    html += '<option value="' + json.data[i]["id"] + '"> ' + json.data[i]["name"] + '</option>';
+                                    html += '<option value="' + json.data[i]["id"] + '" ' + (aData.answer_id == json.data[i]["id"] ? " checked=\"checked\"" : "") + '> ' + json.data[i]["name"] + '</option>';
                                 }
                                 $('#editForm').find('select[name=answer_id]').html(html);
+                                $('#editForm').find('select[name=answer_id]').val(aData.answer_id)
                             } else {
                                 layer.msg(json.errMsg);
                             }
@@ -157,6 +162,13 @@ $this->params['breadcrumbs'][] = $this->title;
       */
      $(function(){
          myTable.init();
+
+         // 文件上传
+         aceFileInput('#ace_myfile', sUpload, false, {"before_remove":function(){
+             if ($("#myfile").val()){ $.post(sUpload, {"face":$("#myfile").val()})}
+             $("#myfile").val('');
+             return true;
+         }});
      });
 </script>
 <?php $this->endBlock(); ?>

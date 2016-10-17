@@ -68,4 +68,24 @@ class Helper
 
         return $objReturn;
     }
+
+    /**
+     * copy() 后台复制文件到前台
+     * @param  string $file 后台文件地址
+     * @return bool
+     */
+    public static function copy($file)
+    {
+        $mixReturn = false;
+        if ($file && file_exists($file)) {
+            $file = ltrim($file, './');
+            $dirPath = rtrim(\Yii::$app->basePath, '/');
+            $strPath = $dirPath.'/../frontend/web/'.$file;
+            $dirName = dirname($strPath);
+            if ( ! file_exists($dirName)) mkdir($dirName, 0777, true);
+            $mixReturn = copy($dirPath.'/web/'.$file, $strPath);
+        }
+
+        return $mixReturn;
+    }
 }
